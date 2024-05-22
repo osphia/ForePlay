@@ -52,43 +52,52 @@ export class Main extends Scene {
 
         const t = program_state.animation_time / 1000;
 
-        const ball_transform = Mat4.identity().times(Mat4.translation(0, 0, 1));
-        const plane_transform = Mat4.identity().times(Mat4.scale(25, 25, 1));
+        // Position the ball at the tip of the left side of the U
+        const ball_transform = Mat4.identity().times(Mat4.translation(-10, 20, 1));
+        // Position the hole at the tip of the right side of the U
+        const hole_transform = Mat4.identity().times(Mat4.translation(10, 20, 0.05)).times(Mat4.scale(1, 1, 0.05));
 
         // Draw the ball
         this.shapes.ball.draw(context, program_state, ball_transform, this.materials.ball);
 
-        // Draw the terrain
-        this.shapes.plane.draw(context, program_state, plane_transform, this.materials.green_terrain);
+        // Draw the U-shaped terrain
+        const left_plane_transform = Mat4.identity().times(Mat4.translation(-10, 0, 0)).times(Mat4.scale(5, 25, 1));
+        const bottom_plane_transform = Mat4.identity().times(Mat4.translation(0, -20, 0)).times(Mat4.scale(15, 5, 1));
+        const right_plane_transform = Mat4.identity().times(Mat4.translation(10, 0, 0)).times(Mat4.scale(5, 25, 1));
 
-        // Draw obstacles
+        this.shapes.plane.draw(context, program_state, left_plane_transform, this.materials.green_terrain);
+        this.shapes.plane.draw(context, program_state, bottom_plane_transform, this.materials.green_terrain);
+        this.shapes.plane.draw(context, program_state, right_plane_transform, this.materials.green_terrain);
+
+        // Draw obstacles to form a continuous border around the U
         const obstacle_positions = [
-            // Vertical obstacles
-            [-24, 0, 1],
-            [24, 0, 1],
-            // Horizontal obstacles
-            [0, -24, 1],
-            [0, 24, 1],
+            // Left side vertical obstacle
+            {translation: [-15, 0, 1], scale: [1, 25, 2]},
+            // Bottom horizontal obstacle
+            {translation: [0, -25, 1], scale: [15, 1, 2]},
+            // Right side vertical obstacle
+            {translation: [15, 0, 1], scale: [1, 25, 2]},
+            // Top left horizontal obstacle
+            {translation: [-10, 25, 1], scale: [6, 1, 2]},
+            // Top right horizontal obstacle
+            {translation: [10, 25, 1], scale: [6, 1, 2]},
+            // Inner left vertical obstacle
+            {translation: [-5, 5, 1], scale: [1, 20, 2]},
+            // Inner right vertical obstacle
+            {translation: [5, 5, 1], scale: [1, 20, 2]},
+            //Inner middle horizontal obstacle
+            {translation: [0, -14, 1], scale: [5, 1, 2]}
         ];
 
-        for (let pos of obstacle_positions) {
-            let obstacle_transform;
-            if (pos[0] === 0) { // Horizontal obstacle
-                obstacle_transform = Mat4.identity()
-                    .times(Mat4.translation(...pos))
-                    .times(Mat4.scale(25, 1, 1));
-            } else { // Vertical obstacle
-                obstacle_transform = Mat4.identity()
-                    .times(Mat4.translation(...pos))
-                    .times(Mat4.scale(1, 25, 1));
-            }
+        for (let {translation, scale} of obstacle_positions) {
+            let obstacle_transform = Mat4.identity()
+                .times(Mat4.translation(...translation))
+                .times(Mat4.scale(...scale));
             this.shapes.obstacle.draw(context, program_state, obstacle_transform, this.materials.obstacle);
         }
 
         // Draw the hole (larger size to match the ball)
-        const hole_transform = Mat4.identity().times(Mat4.translation(10, 10, 0.05)).times(Mat4.scale(1, 1, 0.05));
         this.shapes.hole.draw(context, program_state, hole_transform, this.materials.hole);
-
     }
 }
 
