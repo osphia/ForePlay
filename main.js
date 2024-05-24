@@ -53,7 +53,7 @@ export class Main extends Scene {
         this.ball_position = vec3(-10,20,1);
         this.ball_velocity = vec3(0,0,0);
         this.aim_direction = vec3(1, 0, 0); // Initial aim direction
-        this.speed = 5;
+        this.speed = 25;
         this.aim_speed = 0.05; // Speed at which the aim direction changes
         this.friction = 0.98; // Friction coefficient to slow down ball
 
@@ -131,49 +131,49 @@ export class Main extends Scene {
     }
 
     update_ball_position(dt) {
-        // Update ball position based on velocity
-        this.ball_position = this.ball_position.plus(this.ball_velocity.times(dt));
-        
-        // Apply friction to slow down ball
-        this.ball_velocity = this.ball_velocity.times(this.friction);
+        const steps = 10; // Number of steps for sub-stepping the movement
+        const step_dt = dt / steps;
 
-        // Stop ball when speed is low
-        if (this.ball_velocity.norm() < 0.01) {
-            this.ball_velocity = vec3(0,0,0);
-        }
+        for (let i = 0; i < steps; i++) {
+            this.ball_position = this.ball_position.plus(this.ball_velocity.times(step_dt));
+            //this.check_collision_with_obstacles();
+            this.ball_velocity = this.ball_velocity.times(this.friction);
 
-        this.check_collision_with_obstacles();
-    }
-
-    check_collision_with_obstacles() {
-        const obstacles = [
-            {min: vec3(-15, -25, 0), max: vec3(-5, 25, 2)},
-            {min: vec3(-15, -26, 0), max: vec3(15, -24, 2)},
-            {min: vec3(5, -25, 0), max: vec3(15, 25, 2)},
-            {min: vec3(-16, 24, 0), max: vec3(-4, 26, 2)},
-            {min: vec3(4, 24, 0), max: vec3(16, 26, 2)},
-            {min: vec3(-6, -15, 0), max: vec3(-4, 5, 2)},
-            {min: vec3(4, -15, 0), max: vec3(6, 5, 2)},
-            {min: vec3(-6, -16, 0), max: vec3(6, -14, 2)},
-        ];
-
-        const ball_radius = 1; // Assuming a radius of 1 for the ball
-        for (let obstacle of obstacles) {
-            const closest_point = vec3(
-                Math.max(obstacle.min[0], Math.min(this.ball_position[0], obstacle.max[0])),
-                Math.max(obstacle.min[1], Math.min(this.ball_position[1], obstacle.max[1])),
-                Math.max(obstacle.min[2], Math.min(this.ball_position[2], obstacle.max[2]))
-            );
-
-            const distance = this.ball_position.minus(closest_point).norm();
-
-            if (distance < ball_radius) {
-                const normal = this.ball_position.minus(closest_point).normalized();
-                this.ball_velocity = this.ball_velocity.minus(normal.times(2 * this.ball_velocity.dot(normal)));
-                this.ball_position = closest_point.plus(normal.times(ball_radius));
+            if (this.ball_velocity.norm() < 0.01) {
+                this.ball_velocity = vec3(0, 0, 0);
             }
         }
     }
+
+    // check_collision_with_obstacles() {
+    //     const obstacles = [
+    //         {min: vec3(-15, -25, 0), max: vec3(-5, 25, 2)},
+    //         {min: vec3(-15, -26, 0), max: vec3(15, -24, 2)},
+    //         {min: vec3(5, -25, 0), max: vec3(15, 25, 2)},
+    //         {min: vec3(-16, 24, 0), max: vec3(-4, 26, 2)},
+    //         {min: vec3(4, 24, 0), max: vec3(16, 26, 2)},
+    //         {min: vec3(-6, -15, 0), max: vec3(-4, 5, 2)},
+    //         {min: vec3(4, -15, 0), max: vec3(6, 5, 2)},
+    //         {min: vec3(-6, -16, 0), max: vec3(6, -14, 2)},
+    //     ];
+
+    //     const ball_radius = 3;
+    //     for (let obstacle of obstacles) {
+    //         const closest_point = vec3(
+    //             Math.max(obstacle.min[0], Math.min(this.ball_position[0], obstacle.max[0])),
+    //             Math.max(obstacle.min[1], Math.min(this.ball_position[1], obstacle.max[1])),
+    //             Math.max(obstacle.min[2], Math.min(this.ball_position[2], obstacle.max[2]))
+    //         );
+
+    //         const distance = this.ball_position.minus(closest_point).norm();
+
+    //         if (distance < ball_radius) {
+    //             const normal = this.ball_position.minus(closest_point).normalized();
+    //             this.ball_velocity = this.ball_velocity.minus(normal.times(2 * this.ball_velocity.dot(normal)));
+    //             this.ball_position = closest_point.plus(normal.times(ball_radius));
+    //         }
+    //     }
+    // }
 
     display(context, program_state) {
         // display():  Called once per frame of animation.
