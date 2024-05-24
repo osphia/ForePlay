@@ -4,10 +4,23 @@ const {
     Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene,
 } = tiny;
 
+class Line extends Shape {
+    constructor() {
+        super("positions", "colors");
+
+        this.arrays.positions = [vec3(0, 0, 0), vec3(1, 0, 0)];
+        this.arrays.colors = [color(1, 0, 0, 1), color(1, 0, 0, 1)];
+
+        this.indices.push(0, 1);
+    }
+}
+
 export class Main extends Scene {
     constructor() {
         // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
         super();
+
+        // State variables for 
 
         // At the beginning of our program, load one of each of these shape definitions onto the GPU.
         this.shapes = {
@@ -15,6 +28,8 @@ export class Main extends Scene {
             plane: new defs.Square(), 
             obstacle: new defs.Cube(), 
             hole: new defs.Subdivision_Sphere(1),
+            arrow: new defs.Axis_Arrows(),
+            line: new Line(),
         };
 
         // *** Materials
@@ -27,14 +42,137 @@ export class Main extends Scene {
                 {ambient: 0.5, diffusivity: 1, specularity: 0, color: hex_color("#8B4513")}),
             hole: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#000000")}),
+            arrow: new Material(new defs.Phong_Shader(),
+                {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#ff0000")}),
+            line: new Material(new defs.Basic_Shader()),
         };
 
         this.initial_camera_location = Mat4.look_at(vec3(0, -40, 50), vec3(0, 0, 0), vec3(0, 0, 1)); 
+    
+        // Ball's initial position and velocity
+        this.ball_position = vec3(-10,20,1);
+        this.ball_velocity = vec3(0,0,0);
+        this.aim_direction = vec3(1, 0, 0); // Initial aim direction
+        this.speed = 5;
+        this.aim_speed = 0.05; // Speed at which the aim direction changes
+        this.friction = 0.98; // Friction coefficient to slow down ball
+
+        // Keyboard controls
+        this.key_state = {ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false, Enter: false};
+        this.add_key_listener()
+    }
+
+    add_key_listener() {
+        window.addEventListener('keydown', (event) => {
+            switch (event.key) {
+                case 'ArrowUp':
+                    this.key_state.ArrowUp = true;
+                    event.preventDefault(); // Prevent default behavior
+                    break;
+                case 'ArrowLeft':
+                    this.key_state.ArrowLeft = true;
+                    event.preventDefault(); // Prevent default behavior
+                    break;
+                case 'ArrowDown':
+                    this.key_state.ArrowDown = true;
+                    event.preventDefault(); // Prevent default behavior
+                    break;
+                case 'ArrowRight':
+                    this.key_state.ArrowRight = true;
+                    event.preventDefault(); // Prevent default behavior
+                    break;
+                case 'Enter':
+                    this.key_state.Enter = true;
+                    event.preventDefault(); // Prevent default behavior
+                    break;
+            }
+        });
+
+        window.addEventListener('keyup', (event) => {
+            switch (event.key) {
+                case 'ArrowUp':
+                    this.key_state.ArrowUp = false;
+                    break;
+                case 'ArrowLeft':
+                    this.key_state.ArrowLeft = false;
+                    break;
+                case 'ArrowDown':
+                    this.key_state.ArrowDown = false;
+                    break;
+                case 'ArrowRight':
+                    this.key_state.ArrowRight = false;
+                    break;
+                case 'Enter':
+                    this.key_state.Enter = false;
+                    event.preventDefault(); // Prevent default behavior
+                    break;
+            }
+        });
     }
 
     make_control_panel() {
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         this.key_triggered_button("View golf course", ["Control", "0"], () => this.attached = () => null);
+    }
+
+    update_aim_direction(dt) {
+        // Update aim direction based on key state
+        if (this.key_state.ArrowUp) this.aim_direction = this.aim_direction.plus(vec3(0, this.aim_speed, 0)).normalized();
+        if (this.key_state.ArrowDown) this.aim_direction = this.aim_direction.plus(vec3(0, -this.aim_speed, 0)).normalized();
+        if (this.key_state.ArrowLeft) this.aim_direction = this.aim_direction.plus(vec3(-this.aim_speed, 0, 0)).normalized();
+        if (this.key_state.ArrowRight) this.aim_direction = this.aim_direction.plus(vec3(this.aim_speed, 0, 0)).normalized();
+    }
+
+    release_ball() {
+        // Set ball velocity to aim direction multiplied by speed when enter is pressed
+        if (this.key_state.Enter) {
+            this.ball_velocity = this.aim_direction.times(this.speed);
+        }
+    }
+
+    update_ball_position(dt) {
+        // Update ball position based on velocity
+        this.ball_position = this.ball_position.plus(this.ball_velocity.times(dt));
+        
+        // Apply friction to slow down ball
+        this.ball_velocity = this.ball_velocity.times(this.friction);
+
+        // Stop ball when speed is low
+        if (this.ball_velocity.norm() < 0.01) {
+            this.ball_velocity = vec3(0,0,0);
+        }
+
+        this.check_collision_with_obstacles();
+    }
+
+    check_collision_with_obstacles() {
+        const obstacles = [
+            {min: vec3(-15, -25, 0), max: vec3(-5, 25, 2)},
+            {min: vec3(-15, -26, 0), max: vec3(15, -24, 2)},
+            {min: vec3(5, -25, 0), max: vec3(15, 25, 2)},
+            {min: vec3(-16, 24, 0), max: vec3(-4, 26, 2)},
+            {min: vec3(4, 24, 0), max: vec3(16, 26, 2)},
+            {min: vec3(-6, -15, 0), max: vec3(-4, 5, 2)},
+            {min: vec3(4, -15, 0), max: vec3(6, 5, 2)},
+            {min: vec3(-6, -16, 0), max: vec3(6, -14, 2)},
+        ];
+
+        const ball_radius = 1; // Assuming a radius of 1 for the ball
+        for (let obstacle of obstacles) {
+            const closest_point = vec3(
+                Math.max(obstacle.min[0], Math.min(this.ball_position[0], obstacle.max[0])),
+                Math.max(obstacle.min[1], Math.min(this.ball_position[1], obstacle.max[1])),
+                Math.max(obstacle.min[2], Math.min(this.ball_position[2], obstacle.max[2]))
+            );
+
+            const distance = this.ball_position.minus(closest_point).norm();
+
+            if (distance < ball_radius) {
+                const normal = this.ball_position.minus(closest_point).normalized();
+                this.ball_velocity = this.ball_velocity.minus(normal.times(2 * this.ball_velocity.dot(normal)));
+                this.ball_position = closest_point.plus(normal.times(ball_radius));
+            }
+        }
     }
 
     display(context, program_state) {
@@ -44,31 +182,45 @@ export class Main extends Scene {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             program_state.set_camera(this.initial_camera_location);
         }
-
+    
         program_state.projection_transform = Mat4.perspective(Math.PI / 4, context.width / context.height, 0.1, 100);
-
+    
         const light_position = vec4(0, 10, 0, 1);
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
-
-        const t = program_state.animation_time / 1000;
-
-        // Position the ball at the tip of the left side of the U
-        const ball_transform = Mat4.identity().times(Mat4.translation(-10, 20, 1));
-        // Position the hole at the tip of the right side of the U
-        const hole_transform = Mat4.identity().times(Mat4.translation(10, 20, 0.05)).times(Mat4.scale(1, 1, 0.05));
-
+    
+        const dt = program_state.animation_delta_time / 1000;
+    
+        // Update aim direction and release ball if enter is pressed
+        this.update_aim_direction(dt);
+        this.release_ball();
+    
+        // Update ball position
+        this.update_ball_position(dt);
+    
+        // Position the ball
+        const ball_transform = Mat4.identity().times(Mat4.translation(...this.ball_position));
+    
+        // Create the aim line transform
+        const aim_line_transform = Mat4.identity()
+            .times(Mat4.translation(...this.ball_position))
+            .times(Mat4.rotation(Math.atan2(this.aim_direction[1], this.aim_direction[0]), 0, 0, 1))
+            .times(Mat4.scale(1, 0.1, 0.1));  // Adjust length and thickness as needed
+    
         // Draw the ball
         this.shapes.ball.draw(context, program_state, ball_transform, this.materials.ball);
-
+    
+        // Draw the aim line
+        this.shapes.line.draw(context, program_state, aim_line_transform, this.materials.line);
+    
         // Draw the U-shaped terrain
         const left_plane_transform = Mat4.identity().times(Mat4.translation(-10, 0, 0)).times(Mat4.scale(5, 25, 1));
         const bottom_plane_transform = Mat4.identity().times(Mat4.translation(0, -20, 0)).times(Mat4.scale(15, 5, 1));
         const right_plane_transform = Mat4.identity().times(Mat4.translation(10, 0, 0)).times(Mat4.scale(5, 25, 1));
-
+    
         this.shapes.plane.draw(context, program_state, left_plane_transform, this.materials.green_terrain);
         this.shapes.plane.draw(context, program_state, bottom_plane_transform, this.materials.green_terrain);
         this.shapes.plane.draw(context, program_state, right_plane_transform, this.materials.green_terrain);
-
+    
         // Draw obstacles to form a continuous border around the U
         const obstacle_positions = [
             // Left side vertical obstacle
@@ -88,17 +240,18 @@ export class Main extends Scene {
             //Inner middle horizontal obstacle
             {translation: [0, -14, 1], scale: [5, 1, 2]}
         ];
-
+    
         for (let {translation, scale} of obstacle_positions) {
             let obstacle_transform = Mat4.identity()
                 .times(Mat4.translation(...translation))
                 .times(Mat4.scale(...scale));
             this.shapes.obstacle.draw(context, program_state, obstacle_transform, this.materials.obstacle);
         }
-
+    
         // Draw the hole (larger size to match the ball)
+        const hole_transform = Mat4.identity().times(Mat4.translation(10, 20, 0.05)).times(Mat4.scale(1, 1, 0.05));
         this.shapes.hole.draw(context, program_state, hole_transform, this.materials.hole);
-    }
+    }    
 }
 
 class Gouraud_Shader extends Shader {
