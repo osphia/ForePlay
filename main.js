@@ -15,6 +15,25 @@ class Line extends Shape {
     }
 }
 
+// Does not work yet
+class PowerIndicator extends Shape {
+    constructor() {
+        super("positions", "colors");
+
+        this.arrays.positions = [];
+        this.arrays.colors = [];
+
+        for (let i = 0; i <= 100; i++) {
+            this.arrays.positions.push(vec3(i / 100, 0, 0));
+            this.arrays.colors.push(color(0, 1, 0, 1)); // Green color
+        }
+
+        for (let i = 0; i < 100; i++) {
+            this.indices.push(i, i + 1);
+        }
+    }
+}
+
 export class Main extends Scene {
     constructor() {
         // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
@@ -30,6 +49,7 @@ export class Main extends Scene {
             hole: new defs.Subdivision_Sphere(1),
             arrow: new defs.Axis_Arrows(),
             line: new Line(),
+            power_indicator: new PowerIndicator(),
         };
 
         // *** Materials
@@ -45,6 +65,7 @@ export class Main extends Scene {
             arrow: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#ff0000")}),
             line: new Material(new defs.Basic_Shader()),
+            power_indicator: new Material(new defs.Basic_Shader()),
         };
 
         this.initial_camera_location = Mat4.look_at(vec3(0, -40, 50), vec3(0, 0, 0), vec3(0, 0, 1)); 
@@ -53,10 +74,16 @@ export class Main extends Scene {
         this.ball_position = vec3(-10,20,1);
         this.ball_velocity = vec3(0,0,0);
         this.aim_direction = vec3(1, 0, 0); // Initial aim direction
-        this.speed = 25;
-        this.aim_speed = 0.05; // Speed at which the aim direction changes
-        this.friction = 0.98; // Friction coefficient to slow down ball
+        this.base_speed = 50; // Base speed
+        this.max_speed = 300; // max speed when holding Enter
+        this.aim_speed = 0.2; // Speed at which the aim direction changes
+        this.friction = 0.984; // Friction coefficient to slow down ball
 
+        // Track time when Enter is pressed
+        this.enter_press_time = null;
+        this.enter_release_time = null;
+        this.current_speed = this.base_speed;
+        
         // Keyboard controls
         this.key_state = {ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false, Enter: false};
         this.add_key_listener()
@@ -83,6 +110,9 @@ export class Main extends Scene {
                     break;
                 case 'Enter':
                     this.key_state.Enter = true;
+                    if (this.enter_press_time === null) {
+                        this.enter_press_time = performance.now();
+                    }
                     event.preventDefault(); // Prevent default behavior
                     break;
             }
@@ -104,15 +134,50 @@ export class Main extends Scene {
                     break;
                 case 'Enter':
                     this.key_state.Enter = false;
+                    if (this.enter_press_time !== null) {
+                        this.enter_release_time = performance.now();
+                        this.calculate_speed();
+                        this.enter_press_time = null;
+                    }
                     event.preventDefault(); // Prevent default behavior
                     break;
             }
         });
     }
 
+    calculate_speed() {
+        const hold_duration = (this.enter_release_time - this.enter_press_time) / 500; // Convert to seconds
+        this.speed = Math.min(this.max_speed, this.base_speed + hold_duration * 10); // Adjust the multiplier as needed
+    }
+
     make_control_panel() {
-        // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         this.key_triggered_button("View golf course", ["Control", "0"], () => this.attached = () => null);
+        // Need to fix, other keys don't work
+        // this.key_triggered_button("Aim Up", ["ArrowUp"], () => {
+        //     this.key_state.ArrowUp = true;
+        //     this.update_aim_direction(0.1);
+        //     this.key_state.ArrowUp = false;
+        // });
+        // this.key_triggered_button("Aim Left", ["ArrowLeft"], () => {
+        //     this.key_state.ArrowLeft = true;
+        //     this.update_aim_direction(0.1);
+        //     this.key_state.ArrowLeft = false;
+        // });
+        // this.key_triggered_button("Aim Down", ["ArrowDown"], () => {
+        //     this.key_state.ArrowDown = true;
+        //     this.update_aim_direction(0.1);
+        //     this.key_state.ArrowDown = false;
+        // });
+        // this.key_triggered_button("Aim Right", ["ArrowRight"], () => {
+        //     this.key_state.ArrowRight = true;
+        //     this.update_aim_direction(0.1);
+        //     this.key_state.ArrowRight = false;
+        // });
+        // this.key_triggered_button("Release Ball", ["Enter"], () => {
+        //     this.key_state.Enter = true;
+        //     this.release_ball();
+        //     this.key_state.Enter = false;
+        // });
     }
 
     update_aim_direction(dt) {
@@ -124,9 +189,9 @@ export class Main extends Scene {
     }
 
     release_ball() {
-        // Set ball velocity to aim direction multiplied by speed when enter is pressed
-        if (this.key_state.Enter) {
+        if (this.enter_release_time !== null) {
             this.ball_velocity = this.aim_direction.times(this.speed);
+            this.enter_release_time = null; // Reset after release
         }
     }
 
@@ -136,44 +201,23 @@ export class Main extends Scene {
 
         for (let i = 0; i < steps; i++) {
             this.ball_position = this.ball_position.plus(this.ball_velocity.times(step_dt));
-            //this.check_collision_with_obstacles();
             this.ball_velocity = this.ball_velocity.times(this.friction);
+
+            // Check for boundaries
+            if (this.ball_position[0] < -20 || this.ball_position[0] > 20) {
+                this.ball_position[0] = Math.max(-20, Math.min(20, this.ball_position[0]));
+                this.ball_velocity[0] = -this.ball_velocity[0];
+            }
+            if (this.ball_position[1] < -20 || this.ball_position[1] > 20) {
+                this.ball_position[1] = Math.max(-20, Math.min(20, this.ball_position[1]));
+                this.ball_velocity[1] = -this.ball_velocity[1];
+            }
 
             if (this.ball_velocity.norm() < 0.01) {
                 this.ball_velocity = vec3(0, 0, 0);
             }
         }
     }
-
-    // check_collision_with_obstacles() {
-    //     const obstacles = [
-    //         {min: vec3(-15, -25, 0), max: vec3(-5, 25, 2)},
-    //         {min: vec3(-15, -26, 0), max: vec3(15, -24, 2)},
-    //         {min: vec3(5, -25, 0), max: vec3(15, 25, 2)},
-    //         {min: vec3(-16, 24, 0), max: vec3(-4, 26, 2)},
-    //         {min: vec3(4, 24, 0), max: vec3(16, 26, 2)},
-    //         {min: vec3(-6, -15, 0), max: vec3(-4, 5, 2)},
-    //         {min: vec3(4, -15, 0), max: vec3(6, 5, 2)},
-    //         {min: vec3(-6, -16, 0), max: vec3(6, -14, 2)},
-    //     ];
-
-    //     const ball_radius = 3;
-    //     for (let obstacle of obstacles) {
-    //         const closest_point = vec3(
-    //             Math.max(obstacle.min[0], Math.min(this.ball_position[0], obstacle.max[0])),
-    //             Math.max(obstacle.min[1], Math.min(this.ball_position[1], obstacle.max[1])),
-    //             Math.max(obstacle.min[2], Math.min(this.ball_position[2], obstacle.max[2]))
-    //         );
-
-    //         const distance = this.ball_position.minus(closest_point).norm();
-
-    //         if (distance < ball_radius) {
-    //             const normal = this.ball_position.minus(closest_point).normalized();
-    //             this.ball_velocity = this.ball_velocity.minus(normal.times(2 * this.ball_velocity.dot(normal)));
-    //             this.ball_position = closest_point.plus(normal.times(ball_radius));
-    //         }
-    //     }
-    // }
 
     display(context, program_state) {
         // display():  Called once per frame of animation.
