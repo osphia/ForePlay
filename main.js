@@ -14,8 +14,43 @@ export class Main extends Scene {
             ball: new defs.Subdivision_Sphere(4), 
             plane: new defs.Square(), 
             obstacle: new defs.Cube(), 
-            hole: new defs.Subdivision_Sphere(1),
+            hole: new defs.Subdivision_Sphere(4),
         };
+
+        this.obstacles = [
+            {
+                minX: -15.5, maxX: -14.5, minY: -12.5, maxY: 12.5, minZ: 0, maxZ: 2,
+                normal: vec3(1, 0, 0)  // Normal pointing right
+            },
+            {
+                minX: -7.5, maxX: 7.5, minY: -25.5, maxY: -24.5, minZ: 0, maxZ: 2,
+                normal: vec3(0, 1, 0)  // Normal pointing upwards
+            },
+            {
+                minX: 14.5, maxX: 15.5, minY: -12.5, maxY: 12.5, minZ: 0, maxZ: 2,
+                normal: vec3(-1, 0, 0) // Normal pointing left
+            },
+            {
+                minX: -13, maxX: -7, minY: 24.5, maxY: 25.5, minZ: 0, maxZ: 2,
+                normal: vec3(0, -1, 0) // Normal pointing downwards
+            },
+            {
+                minX: 7, maxX: 13, minY: 24.5, maxY: 25.5, minZ: 0, maxZ: 2,
+                normal: vec3(0, -1, 0) // Normal pointing downwards
+            },
+            {
+                minX: -5.5, maxX: -4.5, minY: -5, maxY: 15, minZ: 0, maxZ: 2,
+                normal: vec3(1, 0, 0)  // Normal pointing right
+            },
+            {
+                minX: 4.5, maxX: 5.5, minY: -5, maxY: 15, minZ: 0, maxZ: 2,
+                normal: vec3(-1, 0, 0) // Normal pointing left
+            },
+            {
+                minX: -2.5, maxX: 2.5, minY: -14.5, maxY: -13.5, minZ: 0, maxZ: 2,
+                normal: vec3(0, 1, 0)  // Normal pointing upwards
+            }
+        ];
 
         // *** Materials
         this.materials = {
@@ -30,6 +65,16 @@ export class Main extends Scene {
         };
 
         this.initial_camera_location = Mat4.look_at(vec3(0, -40, 50), vec3(0, 0, 0), vec3(0, 0, 1)); 
+        
+        
+        this.ball_position = vec3(-10, 20, 1);  // Assuming these are the initial coordinates of the ball
+        this.ball_velocity = vec3(0, 0, 0);     // Initialize with zero velocity
+        this.ballRadius = 1;
+
+        // Your other initializations...
+
+        this.canvas = document.querySelector('#main-canvas');
+        this.attach_event_listeners();
     }
 
     make_control_panel() {
@@ -37,9 +82,103 @@ export class Main extends Scene {
         this.key_triggered_button("View golf course", ["Control", "0"], () => this.attached = () => null);
     }
 
+    //added
+    attach_event_listeners() {
+        this.canvas.addEventListener('mousedown', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // Convert screen coordinates to NDC
+            const ndcX = (mouseX / this.canvas.width) * 2 - 1;
+            const ndcY = -(mouseY / this.canvas.height) * 2 + 1;
+
+            // Use the stored program_state to convert NDC to world coordinates
+            const worldPoint = this.ndcToWorld(ndcX, ndcY, this.current_program_state);
+
+            // Check if clicking on the ball
+            // if (this.isClickOnBall(worldPoint)) {
+            //     console.log("click");
+            //     this.dragging = true;
+            //     this.initiateBallRoll();
+            // }
+            console.log("click");
+            this.initiateBallRoll();
+        });
+    
+        this.canvas.addEventListener('mouseup', () => {
+            this.dragging = false;
+        });
+    }
+    
+    ndcToWorld(ndcX, ndcY, program_state) {
+        const ndcPos = vec4(ndcX, ndcY, 1, 1);
+        const inverseProj = Mat4.inverse(program_state.projection_transform);
+        const inverseView = Mat4.inverse(program_state.camera_transform);
+        let worldPos = inverseView.times(inverseProj).times(ndcPos);
+        return worldPos.to3().normalized(); // Ensure it is normalized
+    }
+    
+    isClickOnBall(worldPoint) {
+        const distance = worldPoint.minus(this.ball_position).norm();
+        return distance <= this.ballRadius; 
+    }
+
+    initiateBallRoll() {
+        // Set initial velocity
+        console.log("Rolling the ball with initial velocity");
+        if (this.ball_velocity.norm() === 0) {  // Ensure velocity is only set if it's currently zero
+            this.ball_velocity = vec3(0, -30, 0); // Example: Roll to the right
+        }
+    }
+    
+    // isColliding() {
+    //     for (let obstacle of this.obstacles) {
+    //         if (this.ball_position[0] + this.ballRadius >= obstacle.minX && this.ball_position[0] - this.ballRadius <= obstacle.maxX &&
+    //             this.ball_position[1] + this.ballRadius >= obstacle.minY && this.ball_position[1] - this.ballRadius <= obstacle.maxY &&
+    //             this.ball_position[2] + this.ballRadius >= obstacle.minZ && this.ball_position[2] - this.ballRadius <= obstacle.maxZ) {
+    //                 console.log("collide");
+    //                 return obstacle;  // Returns the obstacle that was hit
+    //         }
+    //     }
+    //     return null;
+    // }
+    
+    updatePhysics(deltaTime) {
+        // const obstacle = this.isColliding();
+        // if (obstacle) {
+        //     // Reflect the ball's velocity based on the obstacle's normal
+        //     const N = obstacle.normal;
+        //     const I = this.ball_velocity;
+        //     const dotProduct = I.dot(N);
+        //     const reflection = I.minus(N.times(2 * dotProduct));
+        //     this.ball_velocity = reflection;
+        // }
+
+        if (this.ball_velocity.norm() > 0) {  // Check if the velocity vector is non-zero
+            const friction = 0.98;
+            this.ball_velocity = this.ball_velocity.times(friction);
+    
+            // Update position
+            this.ball_position = this.ball_position.plus(this.ball_velocity.times(deltaTime));
+            
+            // Log current velocity for debugging
+            // console.log("Current velocity:", this.ball_velocity);
+    
+            // Stop the ball if velocity is very low
+            if (this.ball_velocity.norm() < 0.1) {
+                this.ball_velocity = vec3(0, 0, 0);
+                console.log("Ball stopped");
+            }
+        }
+    }
+    //added fin    
+
     display(context, program_state) {
         // display():  Called once per frame of animation.
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
+        this.current_program_state = program_state;
+
         if (!context.scratchpad.controls) {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             program_state.set_camera(this.initial_camera_location);
@@ -53,12 +192,9 @@ export class Main extends Scene {
         const t = program_state.animation_time / 1000;
 
         // Position the ball at the tip of the left side of the U
-        const ball_transform = Mat4.identity().times(Mat4.translation(-10, 20, 1));
+        let ball_transform = Mat4.identity().times(Mat4.translation(-10, 20, 1));
         // Position the hole at the tip of the right side of the U
         const hole_transform = Mat4.identity().times(Mat4.translation(10, 20, 0.05)).times(Mat4.scale(1, 1, 0.05));
-
-        // Draw the ball
-        this.shapes.ball.draw(context, program_state, ball_transform, this.materials.ball);
 
         // Draw the U-shaped terrain
         const left_plane_transform = Mat4.identity().times(Mat4.translation(-10, 0, 0)).times(Mat4.scale(5, 25, 1));
@@ -98,6 +234,15 @@ export class Main extends Scene {
 
         // Draw the hole (larger size to match the ball)
         this.shapes.hole.draw(context, program_state, hole_transform, this.materials.hole);
+
+        if (this.ball_velocity.norm > 0) {
+            console.log(this.ball_velocity);
+        }
+        const deltaTime = program_state.animation_delta_time / 1000; // Convert ms to seconds
+        this.updatePhysics(deltaTime);
+
+        ball_transform = Mat4.translation(...this.ball_position);
+        this.shapes.ball.draw(context, program_state, ball_transform, this.materials.ball);
     }
 }
 
@@ -204,44 +349,5 @@ class Gouraud_Shader extends Shader {
 
         this.send_material(context, gpu_addresses, material);
         this.send_gpu_state(context, gpu_addresses, gpu_state, model_transform);
-    }
-}
-
-class Ring_Shader extends Shader {
-    update_GPU(context, gpu_addresses, graphics_state, model_transform, material) {
-        const [P, C, M] = [graphics_state.projection_transform, graphics_state.camera_inverse, model_transform],
-            PCM = P.times(C).times(M);
-        context.uniformMatrix4fv(gpu_addresses.model_transform, false, Matrix.flatten_2D_to_1D(model_transform.transposed()));
-        context.uniformMatrix4fv(gpu_addresses.projection_camera_model_transform, false,
-            Matrix.flatten_2D_to_1D(PCM.transposed()));
-    }
-
-    shared_glsl_code() {
-        return `
-        precision mediump float;
-        varying vec4 point_position;
-        varying vec4 center;
-        `;
-    }
-
-    vertex_glsl_code() {
-        return this.shared_glsl_code() + `
-        attribute vec3 position;
-        uniform mat4 model_transform;
-        uniform mat4 projection_camera_model_transform;
-        
-        void main(){
-            center = model_transform * vec4(0.0, 0.0, 0.0, 1.0);
-            point_position = model_transform * vec4(position, 1.0);
-            gl_Position = projection_camera_model_transform * vec4(position, 1.0);          
-        }`;
-    }
-
-    fragment_glsl_code() {
-        return this.shared_glsl_code() + `
-        void main(){
-            float scalar = sin(18.01 * distance(point_position.xyz, center.xyz));
-            gl_FragColor = scalar * vec4(0.6078, 0.3961, 0.098, 1.0);
-        }`;
     }
 }
