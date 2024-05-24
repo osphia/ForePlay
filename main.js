@@ -83,9 +83,14 @@ export class Main extends Scene {
         this.enter_press_time = null;
         this.enter_release_time = null;
         this.current_speed = this.base_speed;
+
+        this.hole_position = vec3(10,20,1); // Position of hole
+        this.hole_radius = 1;
+        this.ball_radius = 1;
         
         // Keyboard controls
         this.key_state = {ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false, Enter: false};
+        this.game_over = false; // Track game state
         this.add_key_listener()
     }
 
@@ -196,13 +201,15 @@ export class Main extends Scene {
     }
 
     update_ball_position(dt) {
+        if (this.game_over) return; // Stop updating if the game is over
+    
         const steps = 10; // Number of steps for sub-stepping the movement
         const step_dt = dt / steps;
-
+    
         for (let i = 0; i < steps; i++) {
             this.ball_position = this.ball_position.plus(this.ball_velocity.times(step_dt));
             this.ball_velocity = this.ball_velocity.times(this.friction);
-
+    
             // Check for boundaries
             if (this.ball_position[0] < -20 || this.ball_position[0] > 20) {
                 this.ball_position[0] = Math.max(-20, Math.min(20, this.ball_position[0]));
@@ -212,12 +219,23 @@ export class Main extends Scene {
                 this.ball_position[1] = Math.max(-20, Math.min(20, this.ball_position[1]));
                 this.ball_velocity[1] = -this.ball_velocity[1];
             }
-
+    
             if (this.ball_velocity.norm() < 0.01) {
                 this.ball_velocity = vec3(0, 0, 0);
             }
+    
+            // Check for victory
+            this.check_for_victory();
         }
     }
+
+    check_for_victory() {
+        const distance_to_hole = this.ball_position.minus(this.hole_position).norm();
+        if (distance_to_hole < this.ball_radius + this.hole_radius) {
+            this.game_over = true;
+            alert("Congratulations! You've won the game!");
+        }
+    }       
 
     display(context, program_state) {
         // display():  Called once per frame of animation.
@@ -233,6 +251,21 @@ export class Main extends Scene {
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
     
         const dt = program_state.animation_delta_time / 1000;
+
+        // Check if the game is over
+        if (this.game_over) {
+            // Display the winning message
+            const canvas = context.canvas;
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous frames
+
+            ctx.font = "48px serif";
+            ctx.fillStyle = "green";
+            ctx.textAlign = "center";
+            ctx.fillText("Congratulations! You have won!", canvas.width / 2, canvas.height / 2);
+
+        return; // Stop rendering the rest of the scene
+        }
     
         // Update aim direction and release ball if enter is pressed
         this.update_aim_direction(dt);
