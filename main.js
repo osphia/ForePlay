@@ -313,47 +313,53 @@ export class Main extends Scene {
     }     
 
     display(context, program_state) {
-        // display():  Called once per frame of animation.
-        // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
+        // display(): Called once per frame of animation.
         this.current_program_state = program_state;
-
+    
         if (!context.scratchpad.controls) {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             program_state.set_camera(this.initial_camera_location);
         }
-
+    
         program_state.projection_transform = Mat4.perspective(Math.PI / 4, context.width / context.height, 0.1, 100);
-
+    
         const light_position = vec4(0, 10, 0, 1);
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
-
-        const t = program_state.animation_time / 1000;
+    
         const deltaTime = program_state.animation_delta_time / 1000; // Convert ms to seconds
-        // const dt = program_state.animation_delta_time / 1000;
-
+    
         // Check if the game is over
         if (this.game_over) {
             // Display the winning message
             const canvas = context.canvas;
             const ctx = canvas.getContext("2d");
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous frames
-
+    
             ctx.font = "48px serif";
             ctx.fillStyle = "green";
             ctx.textAlign = "center";
             ctx.fillText("Congratulations! You have won!", canvas.width / 2, canvas.height / 2);
-
-        return; // Stop rendering the rest of the scene
+    
+            return; // Stop rendering the rest of the scene
         }
-
+    
         // Update aim direction and release ball if enter is pressed
         this.update_aim_direction(deltaTime);
         this.release_ball();
     
-        // Update ball position
-        // this.update_ball_position(deltaTime);
+        // Update ball position and check for velocity
         this.updatePhysics(deltaTime);
-        
+    
+        // Determine camera position
+        if (this.ball_velocity.norm() > 0.1) {
+            // First-person perspective of the ball
+            const ball_camera_position = this.ball_position.plus(vec3(0, 0, 2)); // Adjust height as needed
+            const ball_camera_target = this.ball_position.plus(this.ball_velocity.normalized().times(10)); // Look in the direction of the ball's velocity
+            program_state.set_camera(Mat4.look_at(ball_camera_position, ball_camera_target, vec3(0, 0, 1)));
+        } else {
+            // Switch back to the initial camera position if the ball is stopped
+            program_state.set_camera(this.initial_camera_location);
+        }
     
         // Position the ball
         const ball_transform3 = Mat4.identity().times(Mat4.translation(...this.ball_position));
@@ -362,28 +368,28 @@ export class Main extends Scene {
         const aim_line_transform = Mat4.identity()
             .times(Mat4.translation(...this.ball_position))
             .times(Mat4.rotation(Math.atan2(this.aim_direction[1], this.aim_direction[0]), 0, 0, 1))
-            .times(Mat4.scale(1, 0.1, 0.1));  // Adjust length and thickness as needed
+            .times(Mat4.scale(1, 0.1, 0.1)); // Adjust length and thickness as needed
     
         // Draw the ball
         this.shapes.ball.draw(context, program_state, ball_transform3, this.materials.ball);
     
         // Draw the aim line
         this.shapes.line.draw(context, program_state, aim_line_transform, this.materials.line);
-
+    
         // Position the ball at the tip of the left side of the U
         let ball_transform = Mat4.identity().times(Mat4.translation(-10, 20, 1));
         // Position the hole at the tip of the right side of the U
         const hole_transform = Mat4.identity().times(Mat4.translation(10, 20, 0.05)).times(Mat4.scale(1, 1, 0.05));
-
+    
         // Draw the U-shaped terrain
         const left_plane_transform = Mat4.identity().times(Mat4.translation(-10, 0, 0)).times(Mat4.scale(5, 25, 1));
         const bottom_plane_transform = Mat4.identity().times(Mat4.translation(0, -20, 0)).times(Mat4.scale(15, 5, 1));
         const right_plane_transform = Mat4.identity().times(Mat4.translation(10, 0, 0)).times(Mat4.scale(5, 25, 1));
-
+    
         this.shapes.plane.draw(context, program_state, left_plane_transform, this.materials.green_terrain);
         this.shapes.plane.draw(context, program_state, bottom_plane_transform, this.materials.green_terrain);
         this.shapes.plane.draw(context, program_state, right_plane_transform, this.materials.green_terrain);
-
+    
         // Draw obstacles to form a continuous border around the U
         const obstacle_positions = [
             // Left side vertical obstacle
@@ -400,29 +406,27 @@ export class Main extends Scene {
             {translation: [-5, 5, 1], scale: [1, 20, 2]},
             // Inner right vertical obstacle
             {translation: [5, 5, 1], scale: [1, 20, 2]},
-            //Inner middle horizontal obstacle
+            // Inner middle horizontal obstacle
             {translation: [0, -14, 1], scale: [5, 1, 2]}
         ];
-
+    
         for (let {translation, scale} of obstacle_positions) {
             let obstacle_transform = Mat4.identity()
                 .times(Mat4.translation(...translation))
                 .times(Mat4.scale(...scale));
             this.shapes.obstacle.draw(context, program_state, obstacle_transform, this.materials.obstacle);
         }
-
+    
         // Draw the hole (larger size to match the ball)
         this.shapes.hole.draw(context, program_state, hole_transform, this.materials.hole);
-
-        if (this.ball_velocity.norm > 0) {
-            console.log(this.ball_velocity);
-        }
-        
-        this.updatePhysics(deltaTime);
-
+    
         ball_transform = Mat4.translation(...this.ball_position);
         this.shapes.ball.draw(context, program_state, ball_transform, this.materials.ball);
+    
+        // Re-initialize event listeners to ensure ball movement on click
+        this.attach_event_listeners();
     }
+    
 }
 
 class Gouraud_Shader extends Shader {
