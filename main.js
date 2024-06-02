@@ -4,16 +4,7 @@ const {
     Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene,
 } = tiny;
 
-class Line extends Shape {
-    constructor() {
-        super("positions", "colors");
 
-        this.arrays.positions = [vec3(0, 0, 0), vec3(1, 0, 0)];
-        this.arrays.colors = [color(1, 0, 0, 1), color(1, 0, 0, 1)];
-
-        this.indices.push(0, 1);
-    }
-}
 
 export class Main extends Scene {
     constructor() {
@@ -26,8 +17,7 @@ export class Main extends Scene {
             plane: new defs.Square(), 
             obstacle: new defs.Cube(), 
             hole: new defs.Subdivision_Sphere(4),
-            arrow: new defs.Axis_Arrows(),
-            line: new Line(),
+            arrow: new defs.Cube(),
         };
 
         this.obstacles = [
@@ -76,7 +66,7 @@ export class Main extends Scene {
             hole: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#000000")}),
             arrow: new Material(new defs.Phong_Shader(),
-                {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#ff0000")}),
+                {ambient: 1, diffusivity: 0, specularity: 0, color: hex_color("#ff0000")}),
             line: new Material(new defs.Basic_Shader()),
         };
 
@@ -85,7 +75,7 @@ export class Main extends Scene {
         
         this.ball_position = vec3(-10, 20, 1);  // Assuming these are the initial coordinates of the ball
         this.ball_velocity = vec3(0, 0, 0);     // Initialize with zero velocity
-        this.ballRadius = 4;
+        this.ballRadius = 1;
         this.aim_direction = vec3(1, 0, 0); // Initial aim direction
         this.speed = 25;
         this.aim_speed = 0.05; // Speed at which the aim direction changes
@@ -95,7 +85,13 @@ export class Main extends Scene {
         // Track time when Enter is pressed
         this.enter_press_time = null;
         this.enter_release_time = null;
-        this.current_speed = this.base_speed;
+        // this.current_speed = this.base_speed;
+        this.isEnterPressed = false;
+        this.maxSpeed = 50;
+        this.potentialVelocity = 0; 
+
+        this.fluctuationAmplitude = 25; // Maximum deviation from the base speed
+        this.fluctuationFrequency = 2;  // Frequency of the fluctuation
 
         this.hole_position = vec3(10,20,1); // Position of hole
         this.hole_radius = 1;
@@ -127,10 +123,15 @@ export class Main extends Scene {
                     this.key_state.ArrowRight = true;
                     event.preventDefault(); // Prevent default behavior
                     break;
-                case 'Enter':
-                    this.key_state.Enter = true;
-                    event.preventDefault(); // Prevent default behavior
-                    break;
+                // case 'Enter':
+                //     this.key_state.Enter = true;
+                //     event.preventDefault(); // Prevent default behavior
+                //     break;
+            }
+            if (event.key === 'Enter' && !this.isEnterPressed) {
+                this.isEnterPressed = true;
+                this.enter_press_time = Date.now();
+                event.preventDefault();
             }
         });
 
@@ -148,10 +149,18 @@ export class Main extends Scene {
                 case 'ArrowRight':
                     this.key_state.ArrowRight = false;
                     break;
-                case 'Enter':
-                    this.key_state.Enter = false;
-                    event.preventDefault(); // Prevent default behavior
-                    break;
+                // case 'Enter':
+                //     this.key_state.Enter = false;
+                //     event.preventDefault(); // Prevent default behavior
+                //     break;
+            }
+            if (event.key === 'Enter' && this.isEnterPressed) {
+                this.isEnterPressed = false;
+                // Use the calculated potentialVelocity at the moment of release
+                this.ball_velocity = this.aim_direction.times(this.potentialVelocity);
+                this.enter_release_time = Date.now();
+                this.potentialVelocity = 0;  // Reset after shooting
+                event.preventDefault();
             }
         });
     }
@@ -159,14 +168,49 @@ export class Main extends Scene {
     make_control_panel() {
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         this.key_triggered_button("View golf course", ["Control", "0"], () => this.attached = () => null);
+        // this.key_triggered_button("Aim Left", ["Left"], () => this.attached = () => null);
+        // this.key_triggered_button("Aim Right", ["Right"], () => this.attached = () => null);
+        // this.key_triggered_button("Aim Up", ["Up"], () => this.attached = () => null);
+        // this.key_triggered_button("Aim Down", ["Down"], () => this.attached = () => null);
+        // this.key_triggered_button("Shoot", ["Enter"], () => {
+        //     this.ball_velocity = this.aim_direction.times(this.speed);
+        // });
     }
 
-    update_aim_direction(deltaTime) {
-        // Update aim direction based on key state
-        if (this.key_state.ArrowUp) this.aim_direction = this.aim_direction.plus(vec3(0, this.aim_speed, 0)).normalized();
-        if (this.key_state.ArrowDown) this.aim_direction = this.aim_direction.plus(vec3(0, -this.aim_speed, 0)).normalized();
-        if (this.key_state.ArrowLeft) this.aim_direction = this.aim_direction.plus(vec3(-this.aim_speed, 0, 0)).normalized();
-        if (this.key_state.ArrowRight) this.aim_direction = this.aim_direction.plus(vec3(this.aim_speed, 0, 0)).normalized();
+    update_aim_direction(dt) {
+        let change = false;
+        if (this.key_state.ArrowUp) {
+            this.aim_direction = this.aim_direction.plus(vec3(0, this.aim_speed, 0));
+            change = true;
+        }
+        if (this.key_state.ArrowDown) {
+            this.aim_direction = this.aim_direction.plus(vec3(0, -this.aim_speed, 0));
+            change = true;
+        }
+        if (this.key_state.ArrowLeft) {
+            this.aim_direction = this.aim_direction.plus(vec3(-this.aim_speed, 0, 0));
+            change = true;
+        }
+        if (this.key_state.ArrowRight) {
+            this.aim_direction = this.aim_direction.plus(vec3(this.aim_speed, 0, 0));
+            change = true;
+        }
+        if (change) {
+            this.aim_direction.normalize(); // Ensure the direction vector is normalized
+        }
+    }
+
+    update_potential_velocity() {
+        if (this.isEnterPressed && this.enter_press_time) {
+            const currentTime = Date.now();
+            const pressDuration = (currentTime - this.enter_press_time) / 1000;
+    
+            // Calculating fluctuating velocity based on a sine wave
+            this.potentialVelocity = this.speed + this.fluctuationAmplitude * Math.sin(this.fluctuationFrequency * Math.PI * pressDuration);
+            this.potentialVelocity = Math.abs(this.potentialVelocity); // Ensure non-negative velocity for display and physics
+        } else {
+            this.potentialVelocity = 0;
+        }
     }
 
     release_ball() {
@@ -176,44 +220,8 @@ export class Main extends Scene {
         }
     }
 
-    // update_ball_position(deltaTime) {
-    //     const steps = 10; // Number of steps for sub-stepping the movement
-    //     const step_dt = deltaTime / steps;
-
-    //     for (let i = 0; i < steps; i++) {
-    //         this.ball_position = this.ball_position.plus(this.ball_velocity.times(step_dt));
-    //         //this.check_collision_with_obstacles();
-    //         this.ball_velocity = this.ball_velocity.times(this.friction);
-
-    //         if (this.ball_velocity.norm() < 0.01) {
-    //             this.ball_velocity = vec3(0, 0, 0);
-    //         }
-    //     }
-    // }
-
     //added
-    attach_event_listeners() {
-        this.canvas.addEventListener('mousedown', (e) => {
-            const rect = this.canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-
-            // Convert screen coordinates to NDC
-            const ndcX = (mouseX / this.canvas.width) * 2 - 1;
-            const ndcY = -(mouseY / this.canvas.height) * 2 + 1;
-
-            // Use the stored program_state to convert NDC to world coordinates
-            const worldPoint = this.ndcToWorld(ndcX, ndcY, this.current_program_state);
-
-            // // Check if clicking on the ball
-            // if (this.isClickOnBall(worldPoint)) {
-            //     console.log("click");
-            //     this.dragging = true;
-            //     this.initiateBallRoll();
-            // }
-            console.log("click");
-            this.initiateBallRoll();
-        });
+    attach_event_listeners() { 
     
         this.canvas.addEventListener('mouseup', () => {
             this.dragging = false;
@@ -226,19 +234,6 @@ export class Main extends Scene {
         const inverseView = Mat4.inverse(program_state.camera_transform);
         let worldPos = inverseView.times(inverseProj).times(ndcPos);
         return worldPos.to3().normalized(); // Ensure it is normalized
-    }
-    
-    isClickOnBall(worldPoint) {
-        const distance = worldPoint.minus(this.ball_position).norm();
-        return distance <= this.ballRadius; 
-    }
-
-    initiateBallRoll() {
-        // Set initial velocity
-        console.log("Rolling the ball with initial velocity");
-        if (this.ball_velocity.norm() === 0) {  // Ensure velocity is only set if it's currently zero
-            this.ball_velocity = vec3(0, -40, 0); // Example: Roll to the right
-        }
     }
 
     
@@ -262,7 +257,6 @@ export class Main extends Scene {
             // Use the testSphereAABB method to check collision
             if (this.testSphereAABB(sphere, aabb)) {
                 console.log("Collision detected with obstacle");
-    
                 return aabb; // Returns the obstacle that was hit
             }
         }
@@ -276,7 +270,6 @@ export class Main extends Scene {
             y: p.y - s.c[1],
             z: p.z - s.c[2]
         };
-
 
         return this.dotProduct(v, v) <= s.r * s.r;
     }
@@ -293,11 +286,11 @@ export class Main extends Scene {
         return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
     }
 
-    
-    updatePhysics(deltaTime) {
+    updatePhysics(dt) {
         if (this.game_over) return; // Stop updating if the game is over
 
         const obstacle = this.isColliding();
+        if (obstacle) console.log(obstacle);
         if (obstacle) {
             // Reflect the ball's velocity based on the obstacle's normal
             const N = obstacle.normal;
@@ -305,6 +298,7 @@ export class Main extends Scene {
             const dotProduct = I.dot(N);
             const reflection = I.minus(N.times(2 * dotProduct));
             this.ball_velocity = reflection;
+            console.log(N);
         }
 
         if (this.ball_velocity.norm() > 0) {  // Check if the velocity vector is non-zero
@@ -312,7 +306,7 @@ export class Main extends Scene {
             this.ball_velocity = this.ball_velocity.times(friction);
     
             // Update position
-            this.ball_position = this.ball_position.plus(this.ball_velocity.times(deltaTime));
+            this.ball_position = this.ball_position.plus(this.ball_velocity.times(dt));
             
             // Log current velocity for debugging
             // console.log("Current velocity:", this.ball_velocity);
@@ -353,8 +347,7 @@ export class Main extends Scene {
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
 
         const t = program_state.animation_time / 1000;
-        const deltaTime = program_state.animation_delta_time / 1000; // Convert ms to seconds
-        // const dt = program_state.animation_delta_time / 1000;
+        const dt = program_state.animation_delta_time / 1000; // Convert ms to seconds
 
         // Check if the game is over
         if (this.game_over) {
@@ -372,31 +365,40 @@ export class Main extends Scene {
         }
 
         // Update aim direction and release ball if enter is pressed
-        this.update_aim_direction(deltaTime);
+        this.update_aim_direction(dt);
         this.release_ball();
     
         // Update ball position
-        // this.update_ball_position(deltaTime);
-        this.updatePhysics(deltaTime);
+        // this.update_ball_position(dt);
+        this.updatePhysics(dt);
         
     
         // Position the ball
-        const ball_transform3 = Mat4.identity().times(Mat4.translation(...this.ball_position));
-    
-        // Create the aim line transform
-        const aim_line_transform = Mat4.identity()
-            .times(Mat4.translation(...this.ball_position))
-            .times(Mat4.rotation(Math.atan2(this.aim_direction[1], this.aim_direction[0]), 0, 0, 1))
-            .times(Mat4.scale(1, 0.1, 0.1));  // Adjust length and thickness as needed
-    
-        // Draw the ball
-        this.shapes.ball.draw(context, program_state, ball_transform3, this.materials.ball);
-    
-        // Draw the aim line
-        this.shapes.line.draw(context, program_state, aim_line_transform, this.materials.line);
+        const ball_transform = Mat4.identity().times(Mat4.translation(...this.ball_position));
 
-        // Position the ball at the tip of the left side of the U
-        let ball_transform = Mat4.identity().times(Mat4.translation(-10, 20, 1));
+        const forwardShift = this.aim_direction.times(10);  // Scale the direction vector by 5
+        const newPosition = this.ball_position.plus(forwardShift); 
+
+        // Draw the ball
+        this.shapes.ball.draw(context, program_state, ball_transform, this.materials.ball);
+
+        // // Draw the aim line
+        // this.shapes.arrow.draw(context, program_state, arrow_transform, this.materials.arrow);
+
+        
+        this.update_potential_velocity();  // Update the potential velocity based on key press duration
+
+        // Ensure the aim line directly reflects the potential velocity
+        const lineLength = this.potentialVelocity / this.maxSpeed * 10;  // Normalize by maxSpeed for appropriate scaling
+
+        const arrow_transform = Mat4.identity()
+        .times(Mat4.translation(...this.ball_position.plus(this.aim_direction.times(lineLength / 2))))
+        .times(Mat4.rotation(Math.atan2(this.aim_direction[1], this.aim_direction[0]), 0, 0, 1))  // Rotate to align with the aim direction
+        .times(Mat4.scale(lineLength, 0.1, 0.1));  // Scale the line to the desired length and thickness starting from the ball position forward
+
+        // Draw the aim line
+        this.shapes.arrow.draw(context, program_state, arrow_transform, this.materials.arrow);
+
         // Position the hole at the tip of the right side of the U
         const hole_transform = Mat4.identity().times(Mat4.translation(10, 20, 0.05)).times(Mat4.scale(1, 1, 0.05));
 
@@ -429,6 +431,7 @@ export class Main extends Scene {
             {translation: [0, -14, 1], scale: [5, 1, 2]}
         ];
 
+
         for (let {translation, scale} of obstacle_positions) {
             let obstacle_transform = Mat4.identity()
                 .times(Mat4.translation(...translation))
@@ -443,9 +446,7 @@ export class Main extends Scene {
             console.log('v:' + this.ball_velocity);
         }
         
-        this.updatePhysics(deltaTime);
-
-        ball_transform = Mat4.translation(...this.ball_position);
+        this.updatePhysics(dt);
         this.shapes.ball.draw(context, program_state, ball_transform, this.materials.ball);
     }
 }
