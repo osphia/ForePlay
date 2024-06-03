@@ -1,7 +1,7 @@
 import {defs, tiny} from './examples/common.js';
 
 const {
-    Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene,
+    Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene, Texture
 } = tiny;
 
 
@@ -18,6 +18,7 @@ export class Main extends Scene {
             obstacle: new defs.Cube(), 
             hole: new defs.Subdivision_Sphere(4),
             arrow: new defs.Cube(),
+            fullscreen_quad: new defs.Square(),
         };
 
         this.obstacles = [
@@ -93,6 +94,8 @@ export class Main extends Scene {
         this.fluctuationAmplitude = 25; // Maximum deviation from the base speed
         this.fluctuationFrequency = 2;  // Frequency of the fluctuation
 
+        this.strokes = 0;
+
         this.hole_position = vec3(10,20,1); // Position of hole
         this.hole_radius = 1;
         this.ball_radius = 1;
@@ -123,15 +126,11 @@ export class Main extends Scene {
                     this.key_state.ArrowRight = true;
                     event.preventDefault(); // Prevent default behavior
                     break;
-                // case 'Enter':
-                //     this.key_state.Enter = true;
-                //     event.preventDefault(); // Prevent default behavior
-                //     break;
             }
             if (event.key === 'Enter' && !this.isEnterPressed) {
                 this.isEnterPressed = true;
                 this.enter_press_time = Date.now();
-                event.preventDefault();
+                // event.preventDefault();
             }
         });
 
@@ -149,10 +148,6 @@ export class Main extends Scene {
                 case 'ArrowRight':
                     this.key_state.ArrowRight = false;
                     break;
-                // case 'Enter':
-                //     this.key_state.Enter = false;
-                //     event.preventDefault(); // Prevent default behavior
-                //     break;
             }
             if (event.key === 'Enter' && this.isEnterPressed) {
                 this.isEnterPressed = false;
@@ -160,22 +155,54 @@ export class Main extends Scene {
                 this.ball_velocity = this.aim_direction.times(this.potentialVelocity);
                 this.enter_release_time = Date.now();
                 this.potentialVelocity = 0;  // Reset after shooting
-                event.preventDefault();
+                this.strokes += 1;  // Increment the stroke count when the ball is shot
+                this.enter_release_time = Date.now();
+                // event.preventDefault();
             }
         });
     }
 
     make_control_panel() {
-        // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
-        this.key_triggered_button("View golf course", ["Control", "0"], () => this.attached = () => null);
-        // this.key_triggered_button("Aim Left", ["Left"], () => this.attached = () => null);
-        // this.key_triggered_button("Aim Right", ["Right"], () => this.attached = () => null);
-        // this.key_triggered_button("Aim Up", ["Up"], () => this.attached = () => null);
-        // this.key_triggered_button("Aim Down", ["Down"], () => this.attached = () => null);
-        // this.key_triggered_button("Shoot", ["Enter"], () => {
-        //     this.ball_velocity = this.aim_direction.times(this.speed);
-        // });
-    }
+        // Display the stroke count
+        this.live_string(box => {
+            box.textContent = "Strokes: " + this.strokes;
+        });
+        this.new_line();
+            // This button simulates pressing and releasing the up arrow key
+            this.key_triggered_button("Move Up", ["ArrowUp"], () => this.key_state.ArrowUp = true, undefined, () => this.key_state.ArrowUp = false);
+        
+            // This button simulates pressing and releasing the left arrow key
+            this.key_triggered_button("Move Left", ["ArrowLeft"], () => this.key_state.ArrowLeft = true, undefined, () => this.key_state.ArrowLeft = false);
+        
+            // This button simulates pressing and releasing the down arrow key
+            this.key_triggered_button("Move Down", ["ArrowDown"], () => this.key_state.ArrowDown = true, undefined, () => this.key_state.ArrowDown = false);
+        
+            // This button simulates pressing and releasing the right arrow key
+            this.key_triggered_button("Move Right", ["ArrowRight"], () => this.key_state.ArrowRight = true, undefined, () => this.key_state.ArrowRight = false);
+        
+            // This button simulates pressing and releasing the enter key to shoot 
+            this.key_triggered_button("Shoot", ["Enter"], () => {
+                if (!this.isEnterPressed) {
+                    this.isEnterPressed = true;
+                    this.enter_press_time = Date.now();
+                }
+                console.log(`Enter Pressed: ${this.isEnterPressed}, Time: ${this.enter_press_time}`);
+            }, undefined, () => {
+                if (this.isEnterPressed) {
+                    this.isEnterPressed = false;
+                    this.ball_velocity = this.aim_direction.times(this.potentialVelocity);
+                    this.potentialVelocity = 0;  // Reset after shooting
+                    this.strokes += 1;  // Increment the stroke count when the ball is shot
+                    this.enter_release_time = Date.now();
+                    console.log(`Velocity: ${this.ball_velocity}, Strokes: ${this.strokes}`);
+                }
+            });
+        }
+    
+    
+    
+    
+    
 
     update_aim_direction(dt) {
         let change = false;
@@ -219,6 +246,7 @@ export class Main extends Scene {
             this.ball_velocity = this.aim_direction.times(this.speed);
         }
     }
+    
 
     //added
     attach_event_listeners() { 
@@ -327,9 +355,10 @@ export class Main extends Scene {
         const distance_to_hole = this.ball_position.minus(this.hole_position).norm();
         if (distance_to_hole < this.ball_radius + this.hole_radius) {
             this.game_over = true;
-            alert("Congratulations! You've won the game!");
+            alert("Congratulations! You've won the game in " + this.strokes + " strokes!");
+            this.strokes = 0;  // Reset strokes for a new game
         }
-    }     
+    }  
 
     display(context, program_state) {
         // display():  Called once per frame of animation.
@@ -349,21 +378,6 @@ export class Main extends Scene {
         const t = program_state.animation_time / 1000;
         const dt = program_state.animation_delta_time / 1000; // Convert ms to seconds
 
-        // Check if the game is over
-        if (this.game_over) {
-            // Display the winning message
-            const canvas = context.canvas;
-            const ctx = canvas.getContext("2d");
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous frames
-
-            ctx.font = "48px serif";
-            ctx.fillStyle = "green";
-            ctx.textAlign = "center";
-            ctx.fillText("Congratulations! You have won!", canvas.width / 2, canvas.height / 2);
-
-        return; // Stop rendering the rest of the scene
-        }
-
         // Update aim direction and release ball if enter is pressed
         this.update_aim_direction(dt);
         this.release_ball();
@@ -372,7 +386,6 @@ export class Main extends Scene {
         // this.update_ball_position(dt);
         this.updatePhysics(dt);
         
-    
         // Position the ball
         const ball_transform = Mat4.identity().times(Mat4.translation(...this.ball_position));
 
