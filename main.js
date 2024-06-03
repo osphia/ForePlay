@@ -11,6 +11,8 @@ export class Main extends Scene {
         // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
         super();
 
+        // State variables for 
+
         // At the beginning of our program, load one of each of these shape definitions onto the GPU.
         this.shapes = {
             ball: new defs.Subdivision_Sphere(4), 
@@ -82,7 +84,6 @@ export class Main extends Scene {
         this.aim_speed = 0.05; // Speed at which the aim direction changes
         this.friction = 0.98; // Friction coefficient to slow down ball
 
-        // Your other initializations...
         // Track time when Enter is pressed
         this.enter_press_time = null;
         this.enter_release_time = null;
@@ -90,12 +91,9 @@ export class Main extends Scene {
         this.isEnterPressed = false;
         this.maxSpeed = 50;
         this.potentialVelocity = 0; 
-
         this.fluctuationAmplitude = 25; // Maximum deviation from the base speed
         this.fluctuationFrequency = 2;  // Frequency of the fluctuation
-
         this.strokes = 0;
-
         this.hole_position = vec3(10,20,1); // Position of hole
         this.hole_radius = 1;
         this.ball_radius = 1;
@@ -156,7 +154,6 @@ export class Main extends Scene {
                 this.enter_release_time = Date.now();
                 this.potentialVelocity = 0;  // Reset after shooting
                 this.strokes += 1;  // Increment the stroke count when the ball is shot
-                this.enter_release_time = Date.now();
                 // event.preventDefault();
             }
         });
@@ -199,11 +196,6 @@ export class Main extends Scene {
             });
         }
     
-    
-    
-    
-    
-
     update_aim_direction(dt) {
         let change = false;
         if (this.key_state.ArrowUp) {
@@ -369,9 +361,9 @@ export class Main extends Scene {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             program_state.set_camera(this.initial_camera_location);
         }
-
+    
         program_state.projection_transform = Mat4.perspective(Math.PI / 4, context.width / context.height, 0.1, 100);
-
+    
         const light_position = vec4(0, 10, 0, 1);
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
 
@@ -381,36 +373,32 @@ export class Main extends Scene {
         // Update aim direction and release ball if enter is pressed
         this.update_aim_direction(dt);
         this.release_ball();
-    
-        // Update ball position
-        // this.update_ball_position(dt);
         this.updatePhysics(dt);
         
         // Position the ball
         const ball_transform = Mat4.identity().times(Mat4.translation(...this.ball_position));
-
-        const forwardShift = this.aim_direction.times(10);  // Scale the direction vector by 5
-        const newPosition = this.ball_position.plus(forwardShift); 
-
-        // Draw the ball
         this.shapes.ball.draw(context, program_state, ball_transform, this.materials.ball);
 
-        // // Draw the aim line
-        // this.shapes.arrow.draw(context, program_state, arrow_transform, this.materials.arrow);
-
-        
         this.update_potential_velocity();  // Update the potential velocity based on key press duration
 
-        // Ensure the aim line directly reflects the potential velocity
-        const lineLength = this.potentialVelocity / this.maxSpeed * 10;  // Normalize by maxSpeed for appropriate scaling
+        // Always draw aim line when ball is stationary
+        if (this.ball_velocity.norm() === 0 && !this.isEnterPressed) {
+            const lineLength =10;  // Normalize by maxSpeed for appropriate scaling
+            const arrow_transform = Mat4.identity()
+                .times(Mat4.translation(...this.ball_position.plus(this.aim_direction.times(lineLength / 2))))
+                .times(Mat4.rotation(Math.atan2(this.aim_direction[1], this.aim_direction[0]), 0, 0, 1))
+                .times(Mat4.scale(lineLength, 0.1, 0.1));
+            this.shapes.arrow.draw(context, program_state, arrow_transform, this.materials.arrow);
+        }
 
-        const arrow_transform = Mat4.identity()
-        .times(Mat4.translation(...this.ball_position.plus(this.aim_direction.times(lineLength / 2))))
-        .times(Mat4.rotation(Math.atan2(this.aim_direction[1], this.aim_direction[0]), 0, 0, 1))  // Rotate to align with the aim direction
-        .times(Mat4.scale(lineLength, 0.1, 0.1));  // Scale the line to the desired length and thickness starting from the ball position forward
-
-        // Draw the aim line
-        this.shapes.arrow.draw(context, program_state, arrow_transform, this.materials.arrow);
+        if (this.isEnterPressed) {
+            const lineLength =  this.potentialVelocity / this.maxSpeed * 10;
+            const arrow_transform = Mat4.identity()
+                .times(Mat4.translation(...this.ball_position.plus(this.aim_direction.times(lineLength / 2))))
+                .times(Mat4.rotation(Math.atan2(this.aim_direction[1], this.aim_direction[0]), 0, 0, 1))
+                .times(Mat4.scale(lineLength, 0.1, 0.1));
+            this.shapes.arrow.draw(context, program_state, arrow_transform, this.materials.arrow);
+        }
 
         // Position the hole at the tip of the right side of the U
         const hole_transform = Mat4.identity().times(Mat4.translation(10, 20, 0.05)).times(Mat4.scale(1, 1, 0.05));
@@ -419,11 +407,11 @@ export class Main extends Scene {
         const left_plane_transform = Mat4.identity().times(Mat4.translation(-10, 0, 0)).times(Mat4.scale(5, 25, 1));
         const bottom_plane_transform = Mat4.identity().times(Mat4.translation(0, -20, 0)).times(Mat4.scale(15, 5, 1));
         const right_plane_transform = Mat4.identity().times(Mat4.translation(10, 0, 0)).times(Mat4.scale(5, 25, 1));
-
+    
         this.shapes.plane.draw(context, program_state, left_plane_transform, this.materials.green_terrain);
         this.shapes.plane.draw(context, program_state, bottom_plane_transform, this.materials.green_terrain);
         this.shapes.plane.draw(context, program_state, right_plane_transform, this.materials.green_terrain);
-
+    
         // Draw obstacles to form a continuous border around the U
         const obstacle_positions = [
             // Left side vertical obstacle
@@ -451,16 +439,9 @@ export class Main extends Scene {
                 .times(Mat4.scale(...scale));
             this.shapes.obstacle.draw(context, program_state, obstacle_transform, this.materials.obstacle);
         }
-
+    
         // Draw the hole (larger size to match the ball)
         this.shapes.hole.draw(context, program_state, hole_transform, this.materials.hole);
-
-        if (this.ball_velocity.norm > 0) {
-            console.log('v:' + this.ball_velocity);
-        }
-        
-        this.updatePhysics(dt);
-        this.shapes.ball.draw(context, program_state, ball_transform, this.materials.ball);
     }
 }
 
