@@ -24,146 +24,6 @@ export class Main extends Scene {
         };
 
         this.levels = [
-            { // Level 3
-                obstacles: [
-                    // Left side vertical obstacle
-                    {
-                        minX: -35.5, maxX: -34.5,
-                        minY: -10, maxY: 30,
-                        minZ: 0, maxZ: 2,
-                        normal: vec3(1, 0, 0)  // Points outwards, right direction
-                    },
-                    // Right side vertical obstacle
-                    {
-                        minX: 22.5, maxX: 23.5,
-                        minY: -10, maxY: 30,
-                        minZ: 0, maxZ: 2,
-                        normal: vec3(-1, 0, 0) // Points outwards, left direction
-                    },
-                    // Top left horizontal obstacle
-                    {
-                        minX: -21, maxX: 9,
-                        minY: 39.5, maxY: 40.5,
-                        minZ: 0, maxZ: 2,
-                        normal: vec3(0, -1, 0) // Points downwards
-                    },
-                    // Top right horizontal obstacle
-                    {
-                        minX: -21, maxX: 9,
-                        minY: -20.5, maxY: -19.5,
-                        minZ: 0, maxZ: 2,
-                        normal: vec3(0, 1, 0)  // Points upwards
-                    },
-                    // Top of bottom left square
-                    {
-                        minX: -30, maxX: -20,
-                        minY: -0.5, maxY: 0.5,
-                        minZ: 0, maxZ: 2,
-                        normal: vec3(0, 1, 0)  // Points upwards
-                    },
-                    // Side of bottom left square
-                    {
-                        minX: -15.5, maxX: -14.5,
-                        minY: -20, maxY: -9,
-                        minZ: 0, maxZ: 2,
-                        normal: vec3(1, 0, 0)  // Points outwards, right direction
-                    },
-                    // Side of bottom right square
-                    {
-                        minX: 2.5, maxX: 3.5,
-                        minY: -20, maxY: -9,
-                        minZ: 0, maxZ: 2,
-                        normal: vec3(-1, 0, 0) // Points outwards, left direction
-                    },
-                    // Top of bottom right square
-                    {
-                        minX: 7, maxX: 17,
-                        minY: -0.5, maxY: 0.5,
-                        minZ: 0, maxZ: 2,
-                        normal: vec3(0, 1, 0)  // Points upwards
-                    },
-                    // Side of top right square
-                    {
-                        minX: 2.5, maxX: 3.5,
-                        minY: 17, maxY: 28,
-                        minZ: 0, maxZ: 2,
-                        normal: vec3(-1, 0, 0) // Points outwards, left direction
-                    },
-                    // Bottom of top right square
-                    {
-                        minX: 7, maxX: 17,
-                        minY: 17.5, maxY: 18.5,
-                        minZ: 0, maxZ: 2,
-                        normal: vec3(0, -1, 0) // Points downwards
-                    },
-                    // Side of top left square
-                    {
-                        minX: -15.5, maxX: -14.5,
-                        minY: 17, maxY: 28,
-                        minZ: 0, maxZ: 2,
-                        normal: vec3(1, 0, 0)  // Points outwards, right direction
-                    },
-                    // Bottom of top left square
-                    {
-                        minX: -30, maxX: -20,
-                        minY: 17.5, maxY: 18.5,
-                        minthZ: 0,axZ: 2,
-                        normal: vec3(0, -1, 0) // Points downwards
-                    }
-                ],      
-                red_obstacles: [ // These are the new "dangerous" obstacles
-                    {
-                        minX: -10, maxX: 10, minY: 5, maxY: 6, minZ: 0, maxZ: 2,
-                        normal: vec3(0, -1, 0), // Normal pointing downwards
-                        isDangerous: true
-                    },
-                    {
-                        minX: -10, maxX: 10, minY: -6, maxY: -5, minZ: 0, maxZ: 2,
-                        normal: vec3(0, 1, 0), // Normal pointing upwards
-                        isDangerous: true
-                    }
-                ],                                                     
-                obstacle_positions: [
-                    // Left side vertical obstacle
-                    {translation: [-35, 10, 1], scale: [1, 30, 2], rotation: [0,0,0]},
-                    // Right side vertical obstacle
-                    {translation: [23, 10, 1], scale: [1, 30, 2], rotation: [0,0,0]},
-                    // Top left horizontal obstacle
-                    {translation: [-6, 40, 1], scale: [30, 1, 2], rotation: [0,0,0]},
-                    // Top right horizontal obstacle
-                    {translation: [-6, -20, 1], scale: [30, 1, 2], rotation: [0,0,0]},
-
-                    // top of bottom left square
-                    {translation: [-25, 0, 1], scale: [10, 1, 2], rotation: [0,0,0]},
-                    // side of bottom left square
-                    {translation: [-15, -10, 1], scale: [1, 11, 2], rotation: [0,0,0]},
-
-                    // side of bottom right square
-                    {translation: [3, -10, 1], scale: [1, 11, 2], rotation: [0,0,0]},
-                    // top of bottom right square
-                    {translation: [12, 0, 1], scale: [10, 1, 2], rotation: [0,0,0]},
-                    
-                    // side of top right square
-                    {translation: [3, 28, 1], scale: [1, 11, 2], rotation: [0,0,0]},
-                    // bottom of top right square
-                    {translation: [12, 18, 1], scale: [10, 1, 2], rotation: [0,0,0]},
-
-                    // side of top right square
-                    {translation: [-15, 28, 1], scale: [1, 11, 2], rotation: [0,0,0]},
-                    // bottom of top right square
-                    {translation: [-25, 18, 1], scale: [10, 1, 2], rotation: [0,0,0]},
-                ],        
-                red_obstacle_positions: [ // Positions for the red "dangerous" obstacles
-                    {translation: [9, -8, 1], scale: [5, .5, 1], rotation: [0,0,0]},
-                    {translation: [17, -12, 1], scale: [5, .5, 1], rotation: [0,0,0]}, //bottom right
-
-                    {translation: [17, 28, 1], scale: [6, .5, 1], rotation: [0,0,0]}, //top right
-
-                    {translation: [-28, 28, 1], scale: [6, .5, 1], rotation: [0,0,0]},
-                ],        
-                hole_position: vec3(40, 30, 1),
-                ball_start_position: vec3(-6, 10, 1),       
-            },
             { // Level 1
                 obstacles: [
                     {
@@ -327,112 +187,163 @@ export class Main extends Scene {
                 ball_start_position: vec3(23, -15, 1),              
                 
             },
-            { // Level 2
+            { // Level 3
                 obstacles: [
                     // Left side vertical obstacle
                     {
-                        minX: -33 - 0.5, maxX: -35 + 0.5,
-                        minY: 15 - 7.5, maxY: 15 + 7.5,
-                        minZ: 1 - 1, maxZ: 1 + 1,
-                        normal: vec3(1, 0, 0)  // Assuming facing outwards
-                    },
-                    // Bottom horizontal obstacle
-                    {
-                        minX: -18 - 8, maxX: -20 + 8,
-                        minY: 0 - 0.5, maxY: 0 + 0.5,
-                        minZ: 1 - 1, maxZ: 1 + 1,
-                        normal: vec3(0, 1, 0)  // Assuming facing outwards
+                        minX: -35.5, maxX: -34.5,
+                        minY: -10, maxY: 30,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(1, 0, 0)  // Points outwards, right direction
                     },
                     // Right side vertical obstacle
                     {
-                        minX: 28 - 0.5, maxX: 26 + 0.5,
-                        minY: -4 - 8.5, maxY: -4 + 8.5,
-                        minZ: 1 - 1, maxZ: 1 + 1,
-                        normal: vec3(-1, 0, 0) // Assuming facing outwards
+                        minX: 22.5, maxX: 23.5,
+                        minY: -10, maxY: 30,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(-1, 0, 0) // Points outwards, left direction
                     },
                     // Top left horizontal obstacle
                     {
-                        minX: -18 - 8, maxX: -20 + 8,
-                        minY: 30 - 0.5, maxY: 30 + 0.5,
-                        minZ: 1 - 1, maxZ: 1 + 1,
-                        normal: vec3(0, -1, 0) // Assuming facing outwards
+                        minX: -21, maxX: 9,
+                        minY: 39.5, maxY: 40.5,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(0, -1, 0) // Points downwards
                     },
                     // Top right horizontal obstacle
                     {
-                        minX: 12 - 7.5, maxX: 10 + 7.5,
-                        minY: -20 - 0.5, maxY: -20 + 0.5,
-                        minZ: 1 - 1, maxZ: 1 + 1,
-                        normal: vec3(0, -1, 0) // Assuming facing outwards
+                        minX: -21, maxX: 9,
+                        minY: -20.5, maxY: -19.5,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(0, 1, 0)  // Points upwards
                     },
-                    // Inner left vertical obstacle
+                    // Top of bottom left square
                     {
-                        minX: -3 - 0.5, maxX: -5 + 0.5,
-                        minY: 20 - 4.5, maxY: 20 + 4.5,
-                        minZ: 1 - 1, maxZ: 1 + 1,
-                        normal: vec3(1, 0, 0)  // Assuming facing outwards
+                        minX: -30, maxX: -20,
+                        minY: -0.5, maxY: 0.5,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(0, 1, 0)  // Points upwards
                     },
-                    // Inner right vertical obstacle
+                    // Side of bottom left square
                     {
-                        minX: -3 - 0.5, maxX: -5 + 0.5,
-                        minY: -10 - 5.5, maxY: -10 + 5.5,
-                        minZ: 1 - 1, maxZ: 1 + 1,
-                        normal: vec3(1, 0, 0) // Assuming facing outwards, note the same minX, maxX as left
+                        minX: -15.5, maxX: -14.5,
+                        minY: -20, maxY: -9,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(1, 0, 0)  // Points outwards, right direction
                     },
-                    // Inner middle horizontal obstacle
+                    // Side of bottom right square
                     {
-                        minX: 12 - 7.5, maxX: 10 + 7.5,
-                        minY: 12 - 0.5, maxY: 12 + 0.5,
-                        minZ: 1 - 1, maxZ: 1 + 1,
-                        normal: vec3(0, 1, 0)  // Assuming facing outwards
+                        minX: 2.5, maxX: 3.5,
+                        minY: -20, maxY: -9,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(-1, 0, 0) // Points outwards, left direction
                     },
-                    // Left obstacle sticking out
+                    // Top of bottom right square
                     {
-                        minX: 7 - 0.5, maxX: 5 + 0.5,
-                        minY: 2 - 5, maxY: 2 + 5,
-                        minZ: 1 - 1, maxZ: 1 + 1,
-                        normal: vec3(1, 0, 0)  // Assuming facing outwards
+                        minX: 7, maxX: 17,
+                        minY: -0.5, maxY: 0.5,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(0, 1, 0)  // Points upwards
                     },
-                    // Right obstacle sticking out
+                    // Side of top right square
                     {
-                        minX: 17 - 0.5, maxX: 15 + 0.5,
-                        minY: -10 - 5, maxY: -10 + 5,
-                        minZ: 1 - 1, maxZ: 1 + 1,
-                        normal: vec3(-1, 0, 0) // Assuming facing outwards
+                        minX: 2.5, maxX: 3.5,
+                        minY: 17, maxY: 28,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(-1, 0, 0) // Points outwards, left direction
                     },
-                    // square
+                    // Bottom of top right square
                     {
-                        minX: -18 - 2, maxX: -20 + 2, // Center at -20, width of 4 (half-width is 2)
-                        minY: 15 - 2, maxY: 15 + 2,  // Center at 15, height of 4 (half-height is 2)
-                        minZ: 1 - 1, maxZ: 1 + 1,    // Center at 1, depth of 2 (half-depth is 1)
-                        normal: vec3(1, 0, 0)        // Normal pointing out of the screen, assuming no meaningful normal due to lack of rotation
-                    },         
-                ],                                
+                        minX: 7, maxX: 17,
+                        minY: 17.5, maxY: 18.5,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(0, -1, 0) // Points downwards
+                    },
+                    // Side of top left square
+                    {
+                        minX: -15.5, maxX: -14.5,
+                        minY: 17, maxY: 28,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(1, 0, 0)  // Points outwards, right direction
+                    },
+                    // Bottom of top left square
+                    {
+                        minX: -30, maxX: -20,
+                        minY: 17.5, maxY: 18.5,
+                        minthZ: 0,axZ: 2,
+                        normal: vec3(0, -1, 0) // Points downwards
+                    }
+                ],      
+                red_obstacles: [ // These are the new "dangerous" obstacles
+                {
+                    minX: 9 - 2.5, maxX: 9 + 2.5, // Center at 9, width 5
+                    minY: -8 - 0.25, maxY: -8 + 0.25, // Center at -8, height 0.5
+                    minZ: 0, maxZ: 2,
+                    normal: vec3(0, 1, 0), // Normal pointing upwards (opposite to obstacle's plane orientation)
+                    isDangerous: true
+                },
+                {
+                    minX: 17 - 2.5, maxX: 17 + 2.5, // Center at 17, width 5
+                    minY: -12 - 0.25, maxY: -12 + 0.25, // Center at -12, height 0.5
+                    minZ: 0, maxZ: 2,
+                    normal: vec3(0, 1, 0), // Normal pointing upwards
+                    isDangerous: true
+                },
+                {
+                    minX: 17 - 3, maxX: 17 + 3, // Center at 17, width 6
+                    minY: 28 - 0.25, maxY: 28 + 0.25, // Center at 28, height 0.5
+                    minZ: 0, maxZ: 2,
+                    normal: vec3(0, -1, 0), // Normal pointing downwards
+                    isDangerous: true
+                },
+                {
+                    minX: -28 - 3, maxX: -28 + 3, // Center at -28, width 6
+                    minY: 28 - 0.25, maxY: 28 + 0.25, // Center at 28, height 0.5
+                    minZ: 0, maxZ: 2,
+                    normal: vec3(0, -1, 0), // Normal pointing downwards
+                    isDangerous: true
+                }
+            ],                                                 
                 obstacle_positions: [
                     // Left side vertical obstacle
-                    {translation: [-23, 15, 1], scale: [1, 15, 2], rotation: [0,0,0]},
-                    // Bottom horizontal obstacle
-                    {translation: [-18, 0, 1], scale: [16, 1, 2], rotation: [0,0,0]},
+                    {translation: [-35, 10, 1], scale: [1, 30, 2], rotation: [0,0,0]},
                     // Right side vertical obstacle
-                    {translation: [28, -4, 1], scale: [1, 17, 2], rotation: [0,0,0]},
+                    {translation: [23, 10, 1], scale: [1, 30, 2], rotation: [0,0,0]},
                     // Top left horizontal obstacle
-                    {translation: [-18, 30, 1], scale: [16, 1, 2], rotation: [0,0,0]},
+                    {translation: [-6, 40, 1], scale: [30, 1, 2], rotation: [0,0,0]},
                     // Top right horizontal obstacle
-                    {translation: [12, -20, 1], scale: [15, 1, 2], rotation: [0,0,0]},
-                    // Inner left vertical obstacle
-                    {translation: [-3, 20, 1], scale: [1, 9, 2], rotation: [0,0,0]},
-                    // Inner right vertical obstacle
-                    {translation: [-3, -10, 1], scale: [1, 11, 2], rotation: [0,0,0]},
-                    // Inner middle horizontal obstacle
-                    {translation: [12, 12, 1], scale: [15, 1, 2], rotation: [0,0,0]},
-                    // Left obstacle sticking out
-                    {translation: [7, 2, 1], scale: [1, 10, 2], rotation: [0,0,0]},
-                    // Right obstacle sticking out
-                    {translation: [17, -10, 1], scale: [1, 10, 2], rotation: [0,0,0]},
-                    // Diagonal
-                    {translation: [-18, 15, 1], scale: [4, 4, 2], rotation: [0,0,0]},
-                ],                
-                hole_position: vec3(-28, 25, 1),
-                ball_start_position: vec3(23, -15, 1),              
+                    {translation: [-6, -20, 1], scale: [30, 1, 2], rotation: [0,0,0]},
+
+                    // top of bottom left square
+                    {translation: [-25, 0, 1], scale: [10, 1, 2], rotation: [0,0,0]},
+                    // side of bottom left square
+                    {translation: [-15, -10, 1], scale: [1, 11, 2], rotation: [0,0,0]},
+
+                    // side of bottom right square
+                    {translation: [3, -10, 1], scale: [1, 11, 2], rotation: [0,0,0]},
+                    // top of bottom right square
+                    {translation: [12, 0, 1], scale: [10, 1, 2], rotation: [0,0,0]},
+                    
+                    // side of top right square
+                    {translation: [3, 28, 1], scale: [1, 11, 2], rotation: [0,0,0]},
+                    // bottom of top right square
+                    {translation: [12, 18, 1], scale: [10, 1, 2], rotation: [0,0,0]},
+
+                    // side of top right square
+                    {translation: [-15, 28, 1], scale: [1, 11, 2], rotation: [0,0,0]},
+                    // bottom of top right square
+                    {translation: [-25, 18, 1], scale: [10, 1, 2], rotation: [0,0,0]},
+                ],        
+                red_obstacle_positions: [ // Positions for the red "dangerous" obstacles
+                    {translation: [9, -8, 1], scale: [5, .5, 1], rotation: [0,0,0]},
+                    {translation: [17, -12, 1], scale: [5, .5, 1], rotation: [0,0,0]}, //bottom right
+
+                    {translation: [17, 28, 1], scale: [6, .5, 1], rotation: [0,0,0]}, //top right
+
+                    {translation: [-28, 28, 1], scale: [6, .5, 1], rotation: [0,0,0]},
+                ],        
+                hole_position: vec3(40, 30, 1),
+                ball_start_position: vec3(-6, 10, 1),       
             },
         ];
         this.current_level = 0;
@@ -639,10 +550,6 @@ export class Main extends Scene {
         this.ball_position = level.ball_start_position;
         this.ball_velocity = vec3(0, 0, 0);
         this.strokes = 0;
-
-        // if (level_index == 0) {
-        //     this.setupFixedPositionsAndMaterials(); // Separate method to handle setup for clarity
-        // }
     }
 
     update_potential_velocity() {
@@ -761,15 +668,17 @@ export class Main extends Scene {
             // console.log(N);
         }
 
-        const dangerousObstacle = this.isCollidingWithDangerous();
-        if (dangerousObstacle) {
-            // Reset the ball to the start position
-            this.ball_position = this.levels[this.current_level].ball_start_position;
-            this.ball_velocity = vec3(0, 0, 0); // Reset velocity
-            console.log("Hit a dangerous obstacle, resetting position.");
-        }
+        if (this.current_level == 2) {
+            const dangerousObstacle = this.isCollidingWithDangerous();
+            if (dangerousObstacle) {
+                // Reset the ball to the start position
+                this.ball_position = this.levels[this.current_level].ball_start_position;
+                this.ball_velocity = vec3(0, 0, 0); // Reset velocity
+                console.log("Hit a dangerous obstacle, resetting position.");
+            }
 
-        this.handleTeleportation();
+            this.handleTeleportation();
+        }
 
         if (this.ball_velocity.norm() > 0) {  // Check if the velocity vector is non-zero
             const friction = 0.98;
@@ -902,7 +811,7 @@ export class Main extends Scene {
             this.shapes.obstacle.draw(context, program_state, obstacle_transform, this.materials.obstacle);
         }
 
-        if (this.current_level == 0) {
+        if (this.current_level == 2) {
             for (let i = 0; i < this.tp_transforms.length; i++) {
                 this.shapes.hole.draw(context, program_state, this.tp_transforms[i], this.tp_materials[i]);
             }
@@ -915,8 +824,6 @@ export class Main extends Scene {
                 this.shapes.obstacle.draw(context, program_state, obstacle_transform, this.materials.red_obstacle);
             }
         }
-        
-        
     
         // Draw the hole (larger size to match the ball)
         this.shapes.hole.draw(context, program_state, hole_transform, this.materials.hole);
