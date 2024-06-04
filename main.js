@@ -23,53 +23,331 @@ export class Main extends Scene {
             fullscreen_quad: new defs.Square(),
         };
 
-        this.obstacles = [
-            // Left side vertical obstacle
-            {
-                minX: -16, maxX: -14, minY: -25, maxY: 25, minZ: -1, maxZ: 3,
-                normal: vec3(1, 0, 0)  // Normal pointing right
+        this.levels = [
+            { // Level 1
+                obstacles: [
+                    {
+                        minX: -15.5, maxX: -14.5, minY: -12.5, maxY: 12.5, minZ: 0, maxZ: 2,
+                        normal: vec3(1, 0, 0)  // Normal pointing right
+                    },
+                    {
+                        minX: -8, maxX: 8, minY: -25.5, maxY: -24.5, minZ: 0, maxZ: 2,
+                        normal: vec3(0, 1, 0)  // Normal pointing upwards
+                    },
+                    {
+                        minX: 14.5, maxX: 15.5, minY: -12.5, maxY: 12.5, minZ: 0, maxZ: 2,
+                        normal: vec3(-1, 0, 0) // Normal pointing left
+                    },
+                    {
+                        minX: -13, maxX: -7, minY: 24.5, maxY: 25.5, minZ: 0, maxZ: 2,
+                        normal: vec3(0, -1, 0) // Normal pointing downwards
+                    },
+                    {
+                        minX: 7, maxX: 13, minY: 24.5, maxY: 25.5, minZ: 0, maxZ: 2,
+                        normal: vec3(0, -1, 0) // Normal pointing downwards
+                    },
+                    {
+                        minX: -5.5, maxX: -4.5, minY: -5, maxY: 15, minZ: 0, maxZ: 2,
+                        normal: vec3(1, 0, 0)  // Normal pointing right
+                    },
+                    {
+                        minX: 4.5, maxX: 5.5, minY: -5, maxY: 15, minZ: 0, maxZ: 2,
+                        normal: vec3(-1, 0, 0) // Normal pointing left
+                    },
+                    {
+                        minX: -2.5, maxX: 2.5, minY: -14.5, maxY: -13.5, minZ: 0, maxZ: 2,
+                        normal: vec3(0, 1, 0)  // Normal pointing upwards
+                    }],             
+                obstacle_positions: [
+                    // Left side vertical obstacle
+                    {translation: [-15, 0, 1], scale: [1, 25, 2], rotation: [0,0,0]},
+                    // Bottom horizontal obstacle
+                    {translation: [0, -25, 1], scale: [16, 1, 2], rotation: [0,0,0]},
+                    // Right side vertical obstacle
+                    {translation: [15, 0, 1], scale: [1, 25, 2], rotation: [0,0,0]},
+                    // Top left horizontal obstacle
+                    {translation: [-10, 25, 1], scale: [6, 1, 2], rotation: [0,0,0]},
+                    // Top right horizontal obstacle
+                    {translation: [10, 25, 1], scale: [6, 1, 2], rotation: [0,0,0]},
+                    // Inner left vertical obstacle
+                    {translation: [-5, 5, 1], scale: [1, 20, 2], rotation: [0,0,0]},
+                    // Inner right vertical obstacle
+                    {translation: [5, 5, 1], scale: [1, 20, 2], rotation: [0,0,0]},
+                    //Inner middle horizontal obstacle
+                    {translation: [0, -14, 1], scale: [5, 1, 2], rotation: [0,0,0]}
+                ], 
+                hole_position: vec3(10, 20, 1),
+                ball_start_position: vec3(-10, 20, 1),
             },
-            // Bottom horizontal obstacle
-            {
-                minX: -15, maxX: 15, minY: -26, maxY: -24, minZ: -1, maxZ: 3,
-                normal: vec3(0, 1, 0)  // Normal pointing up
+            { // Level 2
+                obstacles: [
+                    // Left side vertical obstacle
+                    {
+                        minX: -33 - 0.5, maxX: -35 + 0.5,
+                        minY: 15 - 7.5, maxY: 15 + 7.5,
+                        minZ: 1 - 1, maxZ: 1 + 1,
+                        normal: vec3(1, 0, 0)  // Assuming facing outwards
+                    },
+                    // Bottom horizontal obstacle
+                    {
+                        minX: -18 - 8, maxX: -20 + 8,
+                        minY: 0 - 0.5, maxY: 0 + 0.5,
+                        minZ: 1 - 1, maxZ: 1 + 1,
+                        normal: vec3(0, 1, 0)  // Assuming facing outwards
+                    },
+                    // Right side vertical obstacle
+                    {
+                        minX: 28 - 0.5, maxX: 26 + 0.5,
+                        minY: -4 - 8.5, maxY: -4 + 8.5,
+                        minZ: 1 - 1, maxZ: 1 + 1,
+                        normal: vec3(-1, 0, 0) // Assuming facing outwards
+                    },
+                    // Top left horizontal obstacle
+                    {
+                        minX: -18 - 8, maxX: -20 + 8,
+                        minY: 30 - 0.5, maxY: 30 + 0.5,
+                        minZ: 1 - 1, maxZ: 1 + 1,
+                        normal: vec3(0, -1, 0) // Assuming facing outwards
+                    },
+                    // Top right horizontal obstacle
+                    {
+                        minX: 12 - 7.5, maxX: 10 + 7.5,
+                        minY: -20 - 0.5, maxY: -20 + 0.5,
+                        minZ: 1 - 1, maxZ: 1 + 1,
+                        normal: vec3(0, -1, 0) // Assuming facing outwards
+                    },
+                    // Inner left vertical obstacle
+                    {
+                        minX: -3 - 0.5, maxX: -5 + 0.5,
+                        minY: 20 - 4.5, maxY: 20 + 4.5,
+                        minZ: 1 - 1, maxZ: 1 + 1,
+                        normal: vec3(1, 0, 0)  // Assuming facing outwards
+                    },
+                    // Inner right vertical obstacle
+                    {
+                        minX: -3 - 0.5, maxX: -5 + 0.5,
+                        minY: -10 - 5.5, maxY: -10 + 5.5,
+                        minZ: 1 - 1, maxZ: 1 + 1,
+                        normal: vec3(1, 0, 0) // Assuming facing outwards, note the same minX, maxX as left
+                    },
+                    // Inner middle horizontal obstacle
+                    {
+                        minX: 12 - 7.5, maxX: 10 + 7.5,
+                        minY: 12 - 0.5, maxY: 12 + 0.5,
+                        minZ: 1 - 1, maxZ: 1 + 1,
+                        normal: vec3(0, 1, 0)  // Assuming facing outwards
+                    },
+                    // Left obstacle sticking out
+                    {
+                        minX: 7 - 0.5, maxX: 5 + 0.5,
+                        minY: 2 - 5, maxY: 2 + 5,
+                        minZ: 1 - 1, maxZ: 1 + 1,
+                        normal: vec3(1, 0, 0)  // Assuming facing outwards
+                    },
+                    // Right obstacle sticking out
+                    {
+                        minX: 17 - 0.5, maxX: 15 + 0.5,
+                        minY: -10 - 5, maxY: -10 + 5,
+                        minZ: 1 - 1, maxZ: 1 + 1,
+                        normal: vec3(-1, 0, 0) // Assuming facing outwards
+                    },
+                    // square
+                    {
+                        minX: -18 - 2, maxX: -20 + 2, // Center at -20, width of 4 (half-width is 2)
+                        minY: 15 - 2, maxY: 15 + 2,  // Center at 15, height of 4 (half-height is 2)
+                        minZ: 1 - 1, maxZ: 1 + 1,    // Center at 1, depth of 2 (half-depth is 1)
+                        normal: vec3(1, 0, 0)        // Normal pointing out of the screen, assuming no meaningful normal due to lack of rotation
+                    },        
+                ],                                
+                obstacle_positions: [
+                    // Left side vertical obstacle
+                    {translation: [-33, 15, 1], scale: [1, 15, 2], rotation: [0,0,0]},
+                    // Bottom horizontal obstacle
+                    {translation: [-18, 0, 1], scale: [16, 1, 2], rotation: [0,0,0]},
+                    // Right side vertical obstacle
+                    {translation: [28, -4, 1], scale: [1, 17, 2], rotation: [0,0,0]},
+                    // Top left horizontal obstacle
+                    {translation: [-18, 30, 1], scale: [16, 1, 2], rotation: [0,0,0]},
+                    // Top right horizontal obstacle
+                    {translation: [12, -20, 1], scale: [15, 1, 2], rotation: [0,0,0]},
+                    // Inner left vertical obstacle
+                    {translation: [-3, 20, 1], scale: [1, 9, 2], rotation: [0,0,0]},
+                    // Inner right vertical obstacle
+                    {translation: [-3, -10, 1], scale: [1, 11, 2], rotation: [0,0,0]},
+                    // Inner middle horizontal obstacle
+                    {translation: [12, 12, 1], scale: [15, 1, 2], rotation: [0,0,0]},
+                    // Left obstacle sticking out
+                    {translation: [7, 2, 1], scale: [1, 10, 2], rotation: [0,0,0]},
+                    // Right obstacle sticking out
+                    {translation: [17, -10, 1], scale: [1, 10, 2], rotation: [0,0,0]},
+                    // Diagonal
+                    {translation: [-18, 15, 1], scale: [4, 4, 2], rotation: [0,0,0]},
+                ],                
+                hole_position: vec3(-28, 25, 1),
+                ball_start_position: vec3(23, -15, 1),              
+                
             },
-            // Right side vertical obstacle
-            {
-                minX: 14, maxX: 16, minY: -25, maxY: 25, minZ: -1, maxZ: 3,
-                normal: vec3(-1, 0, 0) // Normal pointing left
+            { // Level 3
+                obstacles: [
+                    // Left side vertical obstacle
+                    {
+                        minX: -35.5, maxX: -34.5,
+                        minY: -10, maxY: 30,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(1, 0, 0)  // Points outwards, right direction
+                    },
+                    // Right side vertical obstacle
+                    {
+                        minX: 22.5, maxX: 23.5,
+                        minY: -10, maxY: 30,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(-1, 0, 0) // Points outwards, left direction
+                    },
+                    // Top left horizontal obstacle
+                    {
+                        minX: -21, maxX: 9,
+                        minY: 39.5, maxY: 40.5,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(0, -1, 0) // Points downwards
+                    },
+                    // Top right horizontal obstacle
+                    {
+                        minX: -21, maxX: 9,
+                        minY: -20.5, maxY: -19.5,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(0, 1, 0)  // Points upwards
+                    },
+                    // Top of bottom left square
+                    {
+                        minX: -30, maxX: -20,
+                        minY: -0.5, maxY: 0.5,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(0, 1, 0)  // Points upwards
+                    },
+                    // Side of bottom left square
+                    {
+                        minX: -15.5, maxX: -14.5,
+                        minY: -20, maxY: -9,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(1, 0, 0)  // Points outwards, right direction
+                    },
+                    // Side of bottom right square
+                    {
+                        minX: 2.5, maxX: 3.5,
+                        minY: -20, maxY: -9,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(-1, 0, 0) // Points outwards, left direction
+                    },
+                    // Top of bottom right square
+                    {
+                        minX: 7, maxX: 17,
+                        minY: -0.5, maxY: 0.5,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(0, 1, 0)  // Points upwards
+                    },
+                    // Side of top right square
+                    {
+                        minX: 2.5, maxX: 3.5,
+                        minY: 17, maxY: 28,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(-1, 0, 0) // Points outwards, left direction
+                    },
+                    // Bottom of top right square
+                    {
+                        minX: 7, maxX: 17,
+                        minY: 17.5, maxY: 18.5,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(0, -1, 0) // Points downwards
+                    },
+                    // Side of top left square
+                    {
+                        minX: -15.5, maxX: -14.5,
+                        minY: 17, maxY: 28,
+                        minZ: 0, maxZ: 2,
+                        normal: vec3(1, 0, 0)  // Points outwards, right direction
+                    },
+                    // Bottom of top left square
+                    {
+                        minX: -30, maxX: -20,
+                        minY: 17.5, maxY: 18.5,
+                        minthZ: 0,axZ: 2,
+                        normal: vec3(0, -1, 0) // Points downwards
+                    }
+                ],      
+                red_obstacles: [ // These are the new "dangerous" obstacles
+                {
+                    minX: 9 - 2.5, maxX: 9 + 2.5, // Center at 9, width 5
+                    minY: -8 - 0.25, maxY: -8 + 0.25, // Center at -8, height 0.5
+                    minZ: 0, maxZ: 2,
+                    normal: vec3(0, 1, 0), // Normal pointing upwards (opposite to obstacle's plane orientation)
+                    isDangerous: true
+                },
+                {
+                    minX: 17 - 2.5, maxX: 17 + 2.5, // Center at 17, width 5
+                    minY: -12 - 0.25, maxY: -12 + 0.25, // Center at -12, height 0.5
+                    minZ: 0, maxZ: 2,
+                    normal: vec3(0, 1, 0), // Normal pointing upwards
+                    isDangerous: true
+                },
+                {
+                    minX: 17 - 3, maxX: 17 + 3, // Center at 17, width 6
+                    minY: 28 - 0.25, maxY: 28 + 0.25, // Center at 28, height 0.5
+                    minZ: 0, maxZ: 2,
+                    normal: vec3(0, -1, 0), // Normal pointing downwards
+                    isDangerous: true
+                },
+                {
+                    minX: -28 - 3, maxX: -28 + 3, // Center at -28, width 6
+                    minY: 28 - 0.25, maxY: 28 + 0.25, // Center at 28, height 0.5
+                    minZ: 0, maxZ: 2,
+                    normal: vec3(0, -1, 0), // Normal pointing downwards
+                    isDangerous: true
+                }
+            ],                                                 
+                obstacle_positions: [
+                    // Left side vertical obstacle
+                    {translation: [-35, 10, 1], scale: [1, 30, 2], rotation: [0,0,0]},
+                    // Right side vertical obstacle
+                    {translation: [23, 10, 1], scale: [1, 30, 2], rotation: [0,0,0]},
+                    // Top left horizontal obstacle
+                    {translation: [-6, 40, 1], scale: [30, 1, 2], rotation: [0,0,0]},
+                    // Top right horizontal obstacle
+                    {translation: [-6, -20, 1], scale: [30, 1, 2], rotation: [0,0,0]},
+
+                    // top of bottom left square
+                    {translation: [-25, 0, 1], scale: [10, 1, 2], rotation: [0,0,0]},
+                    // side of bottom left square
+                    {translation: [-15, -10, 1], scale: [1, 11, 2], rotation: [0,0,0]},
+
+                    // side of bottom right square
+                    {translation: [3, -10, 1], scale: [1, 11, 2], rotation: [0,0,0]},
+                    // top of bottom right square
+                    {translation: [12, 0, 1], scale: [10, 1, 2], rotation: [0,0,0]},
+                    
+                    // side of top right square
+                    {translation: [3, 28, 1], scale: [1, 11, 2], rotation: [0,0,0]},
+                    // bottom of top right square
+                    {translation: [12, 18, 1], scale: [10, 1, 2], rotation: [0,0,0]},
+
+                    // side of top right square
+                    {translation: [-15, 28, 1], scale: [1, 11, 2], rotation: [0,0,0]},
+                    // bottom of top right square
+                    {translation: [-25, 18, 1], scale: [10, 1, 2], rotation: [0,0,0]},
+                ],        
+                red_obstacle_positions: [ // Positions for the red "dangerous" obstacles
+                    {translation: [9, -8, 1], scale: [5, .5, 1], rotation: [0,0,0]},
+                    {translation: [17, -12, 1], scale: [5, .5, 1], rotation: [0,0,0]}, //bottom right
+
+                    {translation: [17, 28, 1], scale: [6, .5, 1], rotation: [0,0,0]}, //top right
+
+                    {translation: [-28, 28, 1], scale: [6, .5, 1], rotation: [0,0,0]},
+                ],        
+                hole_position: vec3(40, 30, 1),
+                ball_start_position: vec3(-6, 10, 1),       
             },
-            // Top left horizontal obstacle
-            {
-                minX: -16, maxX: -4, minY: 24, maxY: 26, minZ: -1, maxZ: 3,
-                normal: vec3(0, -1, 0) // Normal pointing down
-            },
-            // Top right horizontal obstacle
-            {
-                minX: 4, maxX: 16, minY: 24, maxY: 26, minZ: -1, maxZ: 3,
-                normal: vec3(0, -1, 0) // Normal pointing down
-            },
-            // Inner left vertical obstacle
-            {
-                minX: -6, maxX: -4, minY: -15, maxY: 25, minZ: -1, maxZ: 3,
-                normal: vec3(1, 0, 0)  // Normal pointing right
-            },
-            // Inner right vertical obstacle
-            {
-                minX: 4, maxX: 6, minY: -15, maxY: 25, minZ: -1, maxZ: 3,
-                normal: vec3(-1, 0, 0) // Normal pointing left
-            },
-            // Inner middle horizontal obstacle
-            {
-                minX: -6, maxX: 6, minY: -15, maxY: -13, minZ: -1, maxZ: 3,
-                normal: vec3(0, 1, 0)  // Normal pointing up
-            }
         ];
-        
-        
-        
-        
-        
+        this.current_level = 0;
+        this.init_level(this.current_level);
 
         // *** Materials
         this.materials = {
@@ -84,6 +362,8 @@ export class Main extends Scene {
             arrow: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0, specularity: 0, color: hex_color("#ff0000")}),
             line: new Material(new defs.Basic_Shader()),
+            red_obstacle: new Material(new defs.Phong_Shader(),
+                {ambient: 0.5, diffusivity: 1, specularity: 0, color: hex_color("#FF0000")}),
         };
 
         this.initial_camera_location = Mat4.look_at(vec3(0, -40, 50), vec3(0, 0, 0), vec3(0, 0, 1)); 
@@ -91,7 +371,6 @@ export class Main extends Scene {
         
         this.ball_position = vec3(-10, 20, 1);  // Assuming these are the initial coordinates of the ball
         this.ball_velocity = vec3(0, 0, 0);     // Initialize with zero velocity
-        this.ballRadius = 1;
         this.aim_direction = vec3(1, 0, 0); // Initial aim direction
         this.speed = 25;
         this.aim_speed = 0.05; // Speed at which the aim direction changes
@@ -107,9 +386,41 @@ export class Main extends Scene {
         this.fluctuationAmplitude = 25; // Maximum deviation from the base speed
         this.fluctuationFrequency = 2;  // Frequency of the fluctuation
         this.strokes = 0;
-        this.hole_position = vec3(10,20,1); // Position of hole
+        // this.hole_position = vec3(10,20,1); // Position of hole
         this.hole_radius = 1;
         this.ball_radius = 1;
+
+        this.tp_transforms = [];
+        this.tp_materials = [];
+
+        const fixedPositions = [
+            {x: -6, y: 30}, {x: -30, y: -15}, //yellow
+            {x: -20, y: -4}, {x: 18, y: 35}, //blue
+            {x: 7, y: 25}, {x: -30, y: 35}, //green
+            {x: -20, y: 25}, {x: 8, y: -4}, //purple
+            {x: 18, y: -15}, {x: 40, y: 10} //pink
+        ];
+
+        const colors = [
+            hex_color("#FAFF70"), hex_color("#4FA3F8"), hex_color("#3DA739"), 
+            hex_color("#B896C5"), hex_color("#FFCAD4")
+        ];
+
+        fixedPositions.forEach((position, index) => {
+            const colorIndex = Math.floor(index / 2) % colors.length;
+            const material = new Material(new defs.Phong_Shader(), {
+                ambient: 1, diffusivity: 0.5, specularity: 0.5, color: colors[colorIndex]
+            });
+
+            const tp_transform = Mat4.identity()
+                .times(Mat4.translation(position.x, position.y, 0))
+                .times(Mat4.scale(1, 1, 0.1));
+
+            this.tp_transforms.push(tp_transform);
+            this.tp_materials.push(material);
+        });
+
+
 
         this.key_state = {ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false, Enter: false};
         this.add_key_listener()
@@ -141,7 +452,7 @@ export class Main extends Scene {
             if (event.key === 'Enter' && !this.isEnterPressed) {
                 this.isEnterPressed = true;
                 this.enter_press_time = Date.now();
-                // event.preventDefault();
+                event.preventDefault();
             }
         });
 
@@ -167,7 +478,7 @@ export class Main extends Scene {
                 this.enter_release_time = Date.now();
                 this.potentialVelocity = 0;  // Reset after shooting
                 this.strokes += 1;  // Increment the stroke count when the ball is shot
-                // event.preventDefault();
+                event.preventDefault();
             }
         });
     }
@@ -196,7 +507,6 @@ export class Main extends Scene {
                     this.isEnterPressed = true;
                     this.enter_press_time = Date.now();
                 }
-                console.log(`Enter Pressed: ${this.isEnterPressed}, Time: ${this.enter_press_time}`);
             }, undefined, () => {
                 if (this.isEnterPressed) {
                     this.isEnterPressed = false;
@@ -204,7 +514,6 @@ export class Main extends Scene {
                     this.potentialVelocity = 0;  // Reset after shooting
                     this.strokes += 1;  // Increment the stroke count when the ball is shot
                     this.enter_release_time = Date.now();
-                    console.log(`Velocity: ${this.ball_velocity}, Strokes: ${this.strokes}`);
                 }
             });
         }
@@ -232,6 +541,17 @@ export class Main extends Scene {
         }
     }
 
+    init_level(level_index) {
+        const level = this.levels[level_index];
+        this.obstacles = level.obstacles;
+        this.obstacle_positions = level.obstacle_positions;
+        this.red_obstacle_positions = level.red_obstacle_positions;
+        this.hole_position = level.hole_position;
+        this.ball_position = level.ball_start_position;
+        this.ball_velocity = vec3(0, 0, 0);
+        this.strokes = 0;
+    }
+
     update_potential_velocity() {
         if (this.isEnterPressed && this.enter_press_time) {
             const currentTime = Date.now();
@@ -252,10 +572,7 @@ export class Main extends Scene {
         }
     }
     
-
-    //added
     attach_event_listeners() { 
-    
         this.canvas.addEventListener('mouseup', () => {
             this.dragging = false;
         });
@@ -269,13 +586,31 @@ export class Main extends Scene {
         return worldPos.to3().normalized(); // Ensure it is normalized
     }
 
-    
+    isCollidingWithDangerous() {
+        const sphere = {c: this.ball_position, r: this.ball_radius};
+        for (let obstacle of this.levels[this.current_level].red_obstacles) {
+            const aabb = {
+                minX: obstacle.minX,
+                maxX: obstacle.maxX,
+                minY: obstacle.minY,
+                maxY: obstacle.maxY,
+                minZ: obstacle.minZ,
+                maxZ: obstacle.maxZ,
+                normal: obstacle.normal
+            };
+            if (this.testSphereAABB(sphere, aabb)) {
+                return obstacle; // Returns the dangerous obstacle that was hit
+            }
+        }
+        return null; // No collision detected
+    }
+
     isColliding() {
         const sphere = {
             c: this.ball_position, // center of the sphere
             r: this.ball_radius    // radius of the sphere
         };
-    
+
         for (let obstacle of this.obstacles) {
             const aabb = {
                 minX: obstacle.minX,
@@ -323,7 +658,6 @@ export class Main extends Scene {
         if (this.game_over) return; // Stop updating if the game is over
 
         const obstacle = this.isColliding();
-        if (obstacle) console.log(obstacle);
         if (obstacle) {
             // Reflect the ball's velocity based on the obstacle's normal
             const N = obstacle.normal;
@@ -331,7 +665,19 @@ export class Main extends Scene {
             const dotProduct = I.dot(N);
             const reflection = I.minus(N.times(2 * dotProduct));
             this.ball_velocity = reflection;
-            console.log(N);
+            // console.log(N);
+        }
+
+        if (this.current_level == 2) {
+            const dangerousObstacle = this.isCollidingWithDangerous();
+            if (dangerousObstacle) {
+                // Reset the ball to the start position
+                this.ball_position = this.levels[this.current_level].ball_start_position;
+                this.ball_velocity = vec3(0, 0, 0); // Reset velocity
+                console.log("Hit a dangerous obstacle, resetting position.");
+            }
+
+            this.handleTeleportation();
         }
 
         if (this.ball_velocity.norm() > 0) {  // Check if the velocity vector is non-zero
@@ -354,16 +700,42 @@ export class Main extends Scene {
             this.check_for_victory();
         }
     }
-    //added fin    
+
+    handleTeleportation() {
+        for (let i = 0; i < this.tp_transforms.length; i += 2) {
+            if (i + 1 >= this.tp_transforms.length) break;  // Ensure we have a valid pair
+            const teleportFrom = this.tp_transforms[i].times(vec4(0, 0, 1, 1)).to3();
+            const teleportTo = this.tp_transforms[i + 1].times(vec4(0, 0, 1, 1)).to3();
+            const distanceToTeleportFrom = this.ball_position.minus(teleportFrom).norm();
+
+            teleportTo[2] = 1;
+
+            // Check if within teleportation radius, e.g., 0.5 units
+            if (distanceToTeleportFrom <= this.ball_radius + this.hole_radius) {
+                this.ball_position = teleportTo;
+                // Optionally reset the ball's velocity or adjust it as needed
+                this.ball_velocity = vec3(0, 0, 0);
+                console.log("Teleported from", teleportFrom, "to", teleportTo);
+                break;  // Exit after teleporting to avoid multiple teleports in one update
+            }
+        }
+    }
 
     check_for_victory() {
-        const distance_to_hole = this.ball_position.minus(this.hole_position).norm();
-        if (distance_to_hole < this.ball_radius + this.hole_radius) {
-            this.game_over = true;
-            alert("Congratulations! You've won the game in " + this.strokes + " strokes!");
-            this.strokes = 0;  // Reset strokes for a new game
+        const distance_to_hert = this.ball_position.minus(this.hole_position).norm();
+        if (distance_to_hert < this.ball_radius + this.hole_radius) {
+            alert(`Congratulations! You've won level ${this.current_level + 1} in ${this.strokes} strokes!`);
+            this.current_level++;
+            if (this.current_level < this.levels.length) {
+                this.init_level(this.current_level);
+            } else {
+                alert("You have completed all levels!");
+                this.current_level = 0;  // Reset to the first level or end game
+                this.init_level(this.current_level);  // Restart at the first level or display end game screen
+            }
         }
-    }  
+    }
+    
 
     display(context, program_state) {
         // display():  Called once per frame of animation.
@@ -414,44 +786,43 @@ export class Main extends Scene {
         }
 
         // Position the hole at the tip of the right side of the U
-        const hole_transform = Mat4.identity().times(Mat4.translation(10, 20, 0.05)).times(Mat4.scale(1, 1, 0.05));
+        // const hole_transform = Mat4.identity().times(Mat4.translation(10, 20, 0.05)).times(Mat4.scale(1, 1, 0.05));
+        const hole_transform = Mat4.identity().times(Mat4.translation(...this.hole_position)).times(Mat4.scale(1, 1, 0.1));
 
         // Draw the U-shaped terrain
-        const left_plane_transform = Mat4.identity().times(Mat4.translation(-10, 0, 0)).times(Mat4.scale(5, 25, 1));
-        const bottom_plane_transform = Mat4.identity().times(Mat4.translation(0, -20, 0)).times(Mat4.scale(15, 5, 1));
-        const right_plane_transform = Mat4.identity().times(Mat4.translation(10, 0, 0)).times(Mat4.scale(5, 25, 1));
+        const left_plane_transform = Mat4.identity().times(Mat4.translation(-0, 0, 0)).times(Mat4.scale(80, 80, 1));
     
         this.shapes.plane.draw(context, program_state, left_plane_transform, this.materials.green_terrain);
-        this.shapes.plane.draw(context, program_state, bottom_plane_transform, this.materials.green_terrain);
-        this.shapes.plane.draw(context, program_state, right_plane_transform, this.materials.green_terrain);
+
+        // const left_plane_transform = Mat4.identity().times(Mat4.translation(-10, 0, 0)).times(Mat4.scale(5, 25, 1));
+        // const bottom_plane_transform = Mat4.identity().times(Mat4.translation(0, -20, 0)).times(Mat4.scale(15, 5, 1));
+        // const right_plane_transform = Mat4.identity().times(Mat4.translation(10, 0, 0)).times(Mat4.scale(5, 25, 1));
     
-        // Draw obstacles to form a continuous border around the U
-        const obstacle_positions = [
-            // Left side vertical obstacle
-            {translation: [-15, 0, 1], scale: [1, 25, 2]},
-            // Bottom horizontal obstacle
-            {translation: [0, -25, 1], scale: [15, 1, 2]},
-            // Right side vertical obstacle
-            {translation: [15, 0, 1], scale: [1, 25, 2]},
-            // Top left horizontal obstacle
-            {translation: [-10, 25, 1], scale: [6, 1, 2]},
-            // Top right horizontal obstacle
-            {translation: [10, 25, 1], scale: [6, 1, 2]},
-            // Inner left vertical obstacle
-            {translation: [-5, 5, 1], scale: [1, 20, 2]},
-            // Inner right vertical obstacle
-            {translation: [5, 5, 1], scale: [1, 20, 2]},
-            // Inner middle horizontal obstacle
-            {translation: [0, -14, 1], scale: [4, 1, 2]}
-        ];
-        
+        // this.shapes.plane.draw(context, program_state, left_plane_transform, this.materials.green_terrain);
+        // this.shapes.plane.draw(context, program_state, bottom_plane_transform, this.materials.green_terrain);
+        // this.shapes.plane.draw(context, program_state, right_plane_transform, this.materials.green_terrain);
 
-
-        for (let {translation, scale} of obstacle_positions) {
+        for (let {translation, scale, rotation} of this.obstacle_positions) {
+            let rotationAngle = rotation[1] * Math.PI / 180; // Convert degrees to radians if rotation is specified in degrees
             let obstacle_transform = Mat4.identity()
                 .times(Mat4.translation(...translation))
+                .times(Mat4.rotation(rotationAngle, 0, 0, 1)) // Assuming rotation around the Z-axis
                 .times(Mat4.scale(...scale));
             this.shapes.obstacle.draw(context, program_state, obstacle_transform, this.materials.obstacle);
+        }
+
+        if (this.current_level == 2) {
+            for (let i = 0; i < this.tp_transforms.length; i++) {
+                this.shapes.hole.draw(context, program_state, this.tp_transforms[i], this.tp_materials[i]);
+            }
+            for (let {translation, scale, rotation} of this.red_obstacle_positions) {
+                let rotationAngle = rotation[1] * Math.PI / 180; // Convert degrees to radians
+                let obstacle_transform = Mat4.identity()
+                    .times(Mat4.translation(...translation))
+                    .times(Mat4.rotation(rotationAngle, 0, 0, 1))
+                    .times(Mat4.scale(...scale));
+                this.shapes.obstacle.draw(context, program_state, obstacle_transform, this.materials.red_obstacle);
+            }
         }
     
         // Draw the hole (larger size to match the ball)
