@@ -893,6 +893,17 @@ export class Main extends Scene {
             }
         }
 
+        // Determine camera position
+        if (this.ball_velocity.norm() > 0.1) {
+            // First-person perspective of the ball
+            const ball_camera_position = this.ball_position.plus(vec3(0, 0, 2)); // Adjust height as needed
+            const ball_camera_target = this.ball_position.plus(this.ball_velocity.normalized().times(10)); // Look in the direction of the ball's velocity
+            program_state.set_camera(Mat4.look_at(ball_camera_position, ball_camera_target, vec3(0, 0, 1)));
+        } else {
+            // Switch back to the initial camera position if the ball is stopped
+            program_state.set_camera(this.initial_camera_location);
+        }
+
         // Draw the hole (larger size to match the ball)
         this.shapes.hole.draw(context, program_state, hole_transform, this.materials.hole);
     }
