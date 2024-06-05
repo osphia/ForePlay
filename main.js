@@ -305,8 +305,8 @@ export class Main extends Scene {
             hole: new Material(new defs.Phong_Shader(), { ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#000000") }),
             arrow: new Material(new defs.Phong_Shader(), { ambient: 1, diffusivity: 0, specularity: 0, color: hex_color("#ff0000") }),
             line: new Material(new defs.Basic_Shader()),
-            red_obstacle: new Material(new defs.Phong_Shader(), { ambient: 0.5, diffusivity: 1, specularity: 0, color: hex_color("#FF0000") }),
-            coin: new Material(new defs.Phong_Shader(), { ambient: 1, diffusivity: 0.7, specularity: 1, color: hex_color("#FFD700") })
+            red_obstacle: new Material(new defs.Phong_Shader(), { ambient: 0.8, diffusivity: 1, specularity: 0, color: hex_color("#FF0000") }),
+            coin: new Material(new defs.Phong_Shader(), { ambient: .95, diffusivity: 0.7, specularity: 1, color: hex_color("#FFD700") })
         };
 
         this.initial_camera_location = Mat4.look_at(vec3(0, -40, 50), vec3(0, 0, 0), vec3(0, 0, 1));
@@ -400,7 +400,7 @@ export class Main extends Scene {
                     event.preventDefault(); // Prevent default behavior
                     break;
             }
-            if (event.key === 'Enter' && !this.isEnterPressed) {
+            if (event.key === 'Enter' && !this.isEnterPressed && this.isBallStationary()) {
                 this.isEnterPressed = true;
                 this.enter_press_time = Date.now();
                 event.preventDefault();
@@ -422,7 +422,7 @@ export class Main extends Scene {
                     this.key_state.ArrowRight = false;
                     break;
             }
-            if (event.key === 'Enter' && this.isEnterPressed) {
+            if (event.key === 'Enter' && this.isEnterPressed && this.isBallStationary()) {
                 this.isEnterPressed = false;
                 // Use the calculated potentialVelocity at the moment of release
                 this.ball_velocity = this.aim_direction.times(this.potentialVelocity);
@@ -458,12 +458,12 @@ export class Main extends Scene {
 
         // This button simulates pressing and releasing the enter key to shoot 
         this.key_triggered_button("Shoot", ["Enter"], () => {
-            if (!this.isEnterPressed) {
+            if (!this.isEnterPressed && this.isBallStationary()) {
                 this.isEnterPressed = true;
                 this.enter_press_time = Date.now();
             }
         }, undefined, () => {
-            if (this.isEnterPressed) {
+            if (this.isEnterPressed && this.isBallStationary()) {
                 this.isEnterPressed = false;
                 this.ball_velocity = this.aim_direction.times(this.potentialVelocity);
                 this.potentialVelocity = 0;  // Reset after shooting
@@ -472,6 +472,10 @@ export class Main extends Scene {
             }
         });
     }
+
+    isBallStationary() {
+        return this.ball_velocity.norm() === 0;
+    }    
 
     update_aim_direction(dt) {
         let change = false;
