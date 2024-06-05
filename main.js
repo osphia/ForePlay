@@ -21,6 +21,7 @@ export class Main extends Scene {
             hole: new defs.Subdivision_Sphere(4),
             arrow: new defs.Cube(),
             fullscreen_quad: new defs.Square(),
+            coin: new defs.Subdivision_Sphere(2),
         };
 
         this.levels = [
@@ -360,23 +361,17 @@ export class Main extends Scene {
 
         // *** Materials
         this.materials = {
-            ball: new Material(new defs.Phong_Shader(),
-                {ambient: 0.4, diffusivity: 1, specularity: 0.5, color: hex_color("#ffffff")}),
-            green_terrain: new Material(new defs.Phong_Shader(),
-                {ambient: 1, diffusivity: 1, specularity: 0, color: hex_color("#8CC084")}),
-            obstacle: new Material(new defs.Phong_Shader(),
-                {ambient: 0.5, diffusivity: 1, specularity: 0, color: hex_color("#8B4513")}),
-            hole: new Material(new defs.Phong_Shader(),
-                {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#000000")}),
-            arrow: new Material(new defs.Phong_Shader(),
-                {ambient: 1, diffusivity: 0, specularity: 0, color: hex_color("#ff0000")}),
+            ball: new Material(new defs.Phong_Shader(), {ambient: 0.4, diffusivity: 1, specularity: 0.5, color: hex_color("#ffffff")}),
+            green_terrain: new Material(new defs.Phong_Shader(), {ambient: 1, diffusivity: 1, specularity: 0, color: hex_color("#8CC084")}),
+            obstacle: new Material(new defs.Phong_Shader(), {ambient: 0.5, diffusivity: 1, specularity: 0, color: hex_color("#8B4513")}),
+            hole: new Material(new defs.Phong_Shader(), {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#000000")}),
+            arrow: new Material(new defs.Phong_Shader(), {ambient: 1, diffusivity: 0, specularity: 0, color: hex_color("#ff0000")}),
             line: new Material(new defs.Basic_Shader()),
-            red_obstacle: new Material(new defs.Phong_Shader(),
-                {ambient: 0.5, diffusivity: 1, specularity: 0, color: hex_color("#FF0000")}),
+            red_obstacle: new Material(new defs.Phong_Shader(), {ambient: 0.5, diffusivity: 1, specularity: 0, color: hex_color("#FF0000")}),
+            coin: new Material(new defs.Phong_Shader(), {ambient: 0.4, diffusivity: 1, specularity: 0.5, color: hex_color("#FFD700")})
         };
 
         this.initial_camera_location = Mat4.look_at(vec3(0, -40, 50), vec3(0, 0, 0), vec3(0, 0, 1)); 
-        
         
         this.ball_position = vec3(-10, 20, 1);  // Assuming these are the initial coordinates of the ball
         this.ball_velocity = vec3(0, 0, 0);     // Initialize with zero velocity
@@ -395,9 +390,12 @@ export class Main extends Scene {
         this.fluctuationAmplitude = 25; // Maximum deviation from the base speed
         this.fluctuationFrequency = 2;  // Frequency of the fluctuation
         this.strokes = 0;
-        // this.hole_position = vec3(10,20,1); // Position of hole
         this.hole_radius = 1;
         this.ball_radius = 1;
+
+        this.coin_radius = 1;
+        this.coins = [];
+        this.collected_coins = 0;
 
         this.tp_transforms = [];
         this.tp_materials = [];
@@ -429,7 +427,13 @@ export class Main extends Scene {
             this.tp_materials.push(material);
         });
 
-
+        // Level 0 coins]
+        this.coins = [
+            vec3(-10, -12, 1),
+            vec3(11, -4, 1),
+            vec3(2, -21, 1)
+        ];
+        this.collected_coins = 0;
 
         this.key_state = {ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false, Enter: false};
         this.add_key_listener()
@@ -498,6 +502,10 @@ export class Main extends Scene {
             box.textContent = "Strokes: " + this.strokes;
         });
         this.new_line();
+        this.live_string(box => {
+            box.textContent = "Coins Collected: " + this.collected_coins;
+        });
+        this.new_line();
             // This button simulates pressing and releasing the up arrow key
             this.key_triggered_button("Move Up", ["ArrowUp"], () => this.key_state.ArrowUp = true, undefined, () => this.key_state.ArrowUp = false);
         
@@ -559,6 +567,51 @@ export class Main extends Scene {
         this.ball_position = level.ball_start_position;
         this.ball_velocity = vec3(0, 0, 0);
         this.strokes = 0;
+    
+        // Initialize coins for the current level
+        if (level_index === 1) {
+            // Hard code coin positions for level 2
+            this.coins = [
+                vec3(-20, 7, 1),
+                vec3(10, -5, 1),
+                vec3(-8, 21, 1),
+                vec3(0, 8, 1),
+                vec3(15, 5, 1)
+            ];
+        } else if (level_index === 2) {
+            // Hard code coin positions for level 3
+            this.coins = [
+                vec3(15, 10, 1),
+                vec3(-20, -10, 1),
+                vec3(15, -10, 1),
+                vec3(-19, 29, 1),
+                vec3(0, 15, 1)
+            ];
+        }
+    
+        this.collected_coins = 0;
+        console.log("Initialized level with coins:", this.coins);
+    }    
+
+    generate_coins(num_coins) {
+        const coins = [];
+        const bounds = { minX: -15, maxX: 15, minY: -25, maxY: 25 }; // Adjust based on your terrain bounds
+        while (coins.length < num_coins) {
+            let x = Math.random() * (bounds.maxX - bounds.minX) + bounds.minX;
+            let y = Math.random() * (bounds.maxY - bounds.minY) + bounds.minY;
+            let valid = true;
+            // Ensure coins do not overlap with obstacles
+            for (let obstacle of this.obstacles) {
+                if (x > obstacle.minX && x < obstacle.maxX && y > obstacle.minY && y < obstacle.maxY) {
+                    valid = false;
+                    break;
+                }
+            }
+            if (valid) {
+                coins.push(vec3(x, y, 1));
+            }
+        }
+        return coins;
     }
 
     update_potential_velocity() {
@@ -707,6 +760,7 @@ export class Main extends Scene {
 
             // Check for victory
             this.check_for_victory();
+            this.check_for_coin_collection();
         }
     }
 
@@ -730,10 +784,21 @@ export class Main extends Scene {
         }
     }
 
+    check_for_coin_collection() {
+        this.coins = this.coins.filter(coin => {
+            const distance = this.ball_position.minus(coin).norm();
+            if (distance < this.ball_radius + this.coin_radius) {
+                this.collected_coins += 1;
+                return false;
+            }
+            return true;
+        });
+    }
+
     check_for_victory() {
         const distance_to_hert = this.ball_position.minus(this.hole_position).norm();
         if (distance_to_hert < this.ball_radius + this.hole_radius) {
-            alert(`Congratulations! You've won level ${this.current_level + 1} in ${this.strokes} strokes!`);
+            alert(`Congratulations! You've won level ${this.current_level + 1} in ${this.strokes} strokes! Coins collected: ${this.collected_coins}`);
             this.current_level++;
             if (this.current_level < this.levels.length) {
                 this.init_level(this.current_level);
@@ -820,6 +885,12 @@ export class Main extends Scene {
             this.shapes.obstacle.draw(context, program_state, obstacle_transform, this.materials.obstacle);
         }
 
+        this.coins.forEach(coin => {
+            const coin_transform = Mat4.identity().times(Mat4.translation(...coin)).times(Mat4.scale(this.coin_radius, this.coin_radius, this.coin_radius));
+            console.log("Drawing coin at:", coin); // Debugging output
+            this.shapes.coin.draw(context, program_state, coin_transform, this.materials.coin);
+        });
+
         if (this.current_level == 2) {
             for (let i = 0; i < this.tp_transforms.length; i++) {
                 this.shapes.hole.draw(context, program_state, this.tp_transforms[i], this.tp_materials[i]);
@@ -833,7 +904,7 @@ export class Main extends Scene {
                 this.shapes.obstacle.draw(context, program_state, obstacle_transform, this.materials.red_obstacle);
             }
         }
-    
+
         // Draw the hole (larger size to match the ball)
         this.shapes.hole.draw(context, program_state, hole_transform, this.materials.hole);
     }
