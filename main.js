@@ -20,6 +20,7 @@ export class Main extends Scene {
             obstacle: new defs.Cube(),
             hole: new defs.Subdivision_Sphere(4),
             arrow: new defs.Cube(),
+            arrowhead: new defs.Cone_Tip(3, 10),
             fullscreen_quad: new defs.Square(),
             coin_body: new defs.Cylindrical_Tube(1, 1, [[0, 2], [0, 2]]), // Body of the coin
             coin_face: new defs.Regular_2D_Polygon(1, 15) // Faces of the coin
@@ -91,7 +92,7 @@ export class Main extends Scene {
                 ball_start_position: vec3(-10, 20, 1),
             },
             { // Level 2
-                obstacles : [
+                obstacles: [
                     {
                         minX: -34, maxX: -32, minY: 0, maxY: 30, minZ: -1, maxZ: 3,
                         normal: vec3(1, 0, 0)
@@ -138,7 +139,7 @@ export class Main extends Scene {
                         minZ: -1, maxZ: 3,
                         normal: vec3(1, 0, 0)
                     },
-                ],                               
+                ],
                 obstacle_positions: [
                     // Left side vertical obstacle
                     { translation: [-33, 15, 1], scale: [1, 15, 2], rotation: [0, 0, 0] },
@@ -168,7 +169,7 @@ export class Main extends Scene {
 
             },
             { // Level 3
-                obstacles : [
+                obstacles: [
                     {
                         minX: -36, maxX: -34, minY: -20, maxY: 40, minZ: -1, maxZ: 3,
                         normal: vec3(1, 0, 0)  // Points outwards, right direction
@@ -220,8 +221,8 @@ export class Main extends Scene {
                         normal: vec3(0, -1, 0) // Points downwards
                     }
                 ],
-                      
-                red_obstacles : [
+
+                red_obstacles: [
                     {
                         minX: 4, maxX: 14,
                         minY: -8.5, maxY: -7.5,
@@ -251,7 +252,7 @@ export class Main extends Scene {
                         isDangerous: true
                     }
                 ],
-                                                               
+
                 obstacle_positions: [
                     // Left side vertical obstacle
                     { translation: [-35, 10, 1], scale: [1, 30, 2], rotation: [0, 0, 0] },
@@ -475,7 +476,7 @@ export class Main extends Scene {
 
     isBallStationary() {
         return this.ball_velocity.norm() === 0;
-    }    
+    }
 
     update_aim_direction(dt) {
         let change = false;
@@ -784,21 +785,37 @@ export class Main extends Scene {
 
         // Always draw aim line when ball is stationary
         if (this.ball_velocity.norm() === 0 && !this.isEnterPressed) {
-            const lineLength = 10;  // Normalize by maxSpeed for appropriate scaling
+            const lineLength = 7;  // Normalize by maxSpeed for appropriate scaling
             const arrow_transform = Mat4.identity()
-                .times(Mat4.translation(...this.ball_position.plus(this.aim_direction.times(lineLength / 2))))
+                .times(Mat4.translation(...this.ball_position.plus(this.aim_direction.times(lineLength / 2 + 4))))
                 .times(Mat4.rotation(Math.atan2(this.aim_direction[1], this.aim_direction[0]), 0, 0, 1))
                 .times(Mat4.scale(lineLength, 0.1, 0.1));
             this.shapes.arrow.draw(context, program_state, arrow_transform, this.materials.arrow);
+
+            // Draw the arrowhead at the tip of the aim line
+            const arrowhead_transform = Mat4.identity()
+                .times(Mat4.translation(...this.ball_position.plus(this.aim_direction.times(lineLength + 7))))
+                .times(Mat4.rotation(Math.atan2(this.aim_direction[1], this.aim_direction[0]), 0, 0, 1))
+                .times(Mat4.rotation(Math.PI / 2, 0, 1, 0))  // Rotate the arrowhead to point outward
+                .times(Mat4.scale(0.5, 0.5, 0.5)); // Scale the arrowhead
+            this.shapes.arrowhead.draw(context, program_state, arrowhead_transform, this.materials.arrow);
         }
 
         if (this.isEnterPressed) {
-            const lineLength = this.potentialVelocity / this.maxSpeed * 10;
+            const lineLength = this.potentialVelocity / this.maxSpeed * 9;
             const arrow_transform = Mat4.identity()
-                .times(Mat4.translation(...this.ball_position.plus(this.aim_direction.times(lineLength / 2))))
+                .times(Mat4.translation(...this.ball_position.plus(this.aim_direction.times((lineLength+6) / 2))))
                 .times(Mat4.rotation(Math.atan2(this.aim_direction[1], this.aim_direction[0]), 0, 0, 1))
                 .times(Mat4.scale(lineLength, 0.1, 0.1));
             this.shapes.arrow.draw(context, program_state, arrow_transform, this.materials.arrow);
+
+            // Draw the arrowhead at the tip of the aim line
+            const arrowhead_transform = Mat4.identity()
+                .times(Mat4.translation(...this.ball_position.plus(this.aim_direction.times(lineLength * 1.7 + 2.2))))
+                .times(Mat4.rotation(Math.atan2(this.aim_direction[1], this.aim_direction[0]), 0, 0, 1))
+                .times(Mat4.rotation(Math.PI / 2, 0, 1, 0))  // Rotate the arrowhead to point outward
+                .times(Mat4.scale(0.5, 0.5, 0.5)); // Scale the arrowhead
+            this.shapes.arrowhead.draw(context, program_state, arrowhead_transform, this.materials.arrow);
         }
 
         // Position the hole at the tip of the right side of the U
@@ -830,35 +847,35 @@ export class Main extends Scene {
         const coin_spin_speed = Math.PI / 2;
         this.coins.forEach(coin => {
             const coin_thickness = 0.14; // Adjust thickness
-        
+
             const coin_body_transform = Mat4.identity()
                 .times(Mat4.translation(...coin))
                 .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)) // Rotate 90 degrees around the x-axis to stand the coin up
                 .times(Mat4.rotation(t * coin_spin_speed, 0, 0, 1)) // Spin around the z-axis
                 .times(Mat4.scale(this.coin_radius, this.coin_radius, coin_thickness)); // Scale z-axis to make it thicker
-        
+
             const coin_top_face_transform = Mat4.identity()
                 .times(Mat4.translation(...coin))
                 .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)) // Rotate 90 degrees around the x-axis
                 .times(Mat4.rotation(t * coin_spin_speed, 0, 0, 1)) // Spin around the z-axis
                 .times(Mat4.translation(0, 0, coin_thickness)); // Position the top face slightly above
-        
+
             const coin_bottom_face_transform = Mat4.identity()
                 .times(Mat4.translation(...coin))
                 .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)) // Rotate 90 degrees around the x-axis
                 .times(Mat4.rotation(t * coin_spin_speed, 0, 0, 1)) // Spin around the z-axis
                 .times(Mat4.translation(0, 0, -coin_thickness)); // Position the bottom face slightly below
-        
+
             // Draw the body of the coin
             this.shapes.coin_body.draw(context, program_state, coin_body_transform, this.materials.coin);
-        
+
             // Draw the top face of the coin
             this.shapes.coin_face.draw(context, program_state, coin_top_face_transform, this.materials.coin);
-        
+
             // Draw the bottom face of the coin
             this.shapes.coin_face.draw(context, program_state, coin_bottom_face_transform, this.materials.coin);
         });
-        
+
 
 
 
