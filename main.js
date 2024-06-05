@@ -1,4 +1,4 @@
-import {defs, tiny} from './examples/common.js';
+import { defs, tiny } from './examples/common.js';
 
 const {
     Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene, Texture
@@ -15,13 +15,14 @@ export class Main extends Scene {
 
         // At the beginning of our program, load one of each of these shape definitions onto the GPU.
         this.shapes = {
-            ball: new defs.Subdivision_Sphere(4), 
-            plane: new defs.Square(), 
-            obstacle: new defs.Cube(), 
+            ball: new defs.Subdivision_Sphere(4),
+            plane: new defs.Square(),
+            obstacle: new defs.Cube(),
             hole: new defs.Subdivision_Sphere(4),
             arrow: new defs.Cube(),
             fullscreen_quad: new defs.Square(),
-            coin: new defs.Subdivision_Sphere(2),
+            coin_body: new defs.Cylindrical_Tube(1, 1, [[0, 2], [0, 2]]), // Body of the coin
+            coin_face: new defs.Regular_2D_Polygon(1, 15) // Faces of the coin
         };
 
         this.levels = [
@@ -70,85 +71,65 @@ export class Main extends Scene {
                 ],
                 obstacle_positions: [
                     // Left side vertical obstacle
-                    {translation: [-15, 0, 1], scale: [1, 25, 2], rotation: [0,0,0]},
+                    { translation: [-15, 0, 1], scale: [1, 25, 2], rotation: [0, 0, 0] },
                     // Bottom horizontal obstacle
-                    {translation: [0, -25, 1], scale: [16, 1, 2], rotation: [0,0,0]},
+                    { translation: [0, -25, 1], scale: [16, 1, 2], rotation: [0, 0, 0] },
                     // Right side vertical obstacle
-                    {translation: [15, 0, 1], scale: [1, 25, 2], rotation: [0,0,0]},
+                    { translation: [15, 0, 1], scale: [1, 25, 2], rotation: [0, 0, 0] },
                     // Top left horizontal obstacle
-                    {translation: [-10, 25, 1], scale: [6, 1, 2], rotation: [0,0,0]},
+                    { translation: [-10, 25, 1], scale: [6, 1, 2], rotation: [0, 0, 0] },
                     // Top right horizontal obstacle
-                    {translation: [10, 25, 1], scale: [6, 1, 2], rotation: [0,0,0]},
+                    { translation: [10, 25, 1], scale: [6, 1, 2], rotation: [0, 0, 0] },
                     // Inner left vertical obstacle
-                    {translation: [-5, 5, 1], scale: [1, 20, 2], rotation: [0,0,0]},
+                    { translation: [-5, 5, 1], scale: [1, 20, 2], rotation: [0, 0, 0] },
                     // Inner right vertical obstacle
-                    {translation: [5, 5, 1], scale: [1, 20, 2], rotation: [0,0,0]},
+                    { translation: [5, 5, 1], scale: [1, 20, 2], rotation: [0, 0, 0] },
                     //Inner middle horizontal obstacle
-                    {translation: [0, -14, 1], scale: [5, 1, 2], rotation: [0,0,0]}
-                ], 
+                    { translation: [0, -14, 1], scale: [5, 1, 2], rotation: [0, 0, 0] }
+                ],
                 hole_position: vec3(10, 20, 1),
                 ball_start_position: vec3(-10, 20, 1),
             },
             { // Level 2
                 obstacles : [
                     {
-                        minX: -34, maxX: -32,
-                        minY: 0, maxY: 30,
-                        minZ: -1, maxZ: 3,
+                        minX: -34, maxX: -32, minY: 0, maxY: 30, minZ: -1, maxZ: 3,
                         normal: vec3(1, 0, 0)
                     },
                     {
-                        minX: -34, maxX: -2,
-                        minY: -1, maxY: 1,
-                        minZ: -1, maxZ: 3,
+                        minX: -34, maxX: -2, minY: -1, maxY: 1, minZ: -1, maxZ: 3,
                         normal: vec3(0, 1, 0)
                     },
                     {
-                        minX: 27, maxX: 29,
-                        minY: -21, maxY: 13,
-                        minZ: -1, maxZ: 3,
+                        minX: 27, maxX: 29, minY: -21, maxY: 13, minZ: -1, maxZ: 3,
                         normal: vec3(-1, 0, 0)
                     },
                     {
-                        minX: -34, maxX: -2,
-                        minY: 29, maxY: 31,
-                        minZ: -1, maxZ: 3,
+                        minX: -34, maxX: -2, minY: 29, maxY: 31, minZ: -1, maxZ: 3,
                         normal: vec3(0, -1, 0)
                     },
                     {
-                        minX: -3, maxX: 27,
-                        minY: -21, maxY: -19,
-                        minZ: -1, maxZ: 3,
+                        minX: -3, maxX: 27, minY: -21, maxY: -19, minZ: -1, maxZ: 3,
                         normal: vec3(0, -1, 0)
                     },
                     {
-                        minX: -4, maxX: -2,
-                        minY: 11, maxY: 29,
-                        minZ: -1, maxZ: 3,
+                        minX: -4, maxX: -2, minY: 11, maxY: 29, minZ: -1, maxZ: 3,
                         normal: vec3(1, 0, 0)
                     },
                     {
-                        minX: -4, maxX: -2,
-                        minY: -21, maxY: 1,
-                        minZ: -1, maxZ: 3,
+                        minX: -4, maxX: -2, minY: -21, maxY: 1, minZ: -1, maxZ: 3,
                         normal: vec3(1, 0, 0)
                     },
                     {
-                        minX: -3, maxX: 27,
-                        minY: 11, maxY: 13,
-                        minZ: -1, maxZ: 3,
+                        minX: -3, maxX: 27, minY: 11, maxY: 13, minZ: -1, maxZ: 3,
                         normal: vec3(0, 1, 0)
                     },
                     {
-                        minX: 6, maxX: 8,
-                        minY: -8, maxY: 12,
-                        minZ: -1, maxZ: 3,
+                        minX: 6, maxX: 8, minY: -8, maxY: 12, minZ: -1, maxZ: 3,
                         normal: vec3(1, 0, 0)
                     },
                     {
-                        minX: 16, maxX: 18,
-                        minY: -20, maxY: 0,
-                        minZ: -1, maxZ: 3,
+                        minX: 16, maxX: 18, minY: -20, maxY: 0, minZ: -1, maxZ: 3,
                         normal: vec3(-1, 0, 0)
                     },
                     {
@@ -160,80 +141,64 @@ export class Main extends Scene {
                 ],                               
                 obstacle_positions: [
                     // Left side vertical obstacle
-                    {translation: [-33, 15, 1], scale: [1, 15, 2], rotation: [0,0,0]},
+                    { translation: [-33, 15, 1], scale: [1, 15, 2], rotation: [0, 0, 0] },
                     // Bottom horizontal obstacle
-                    {translation: [-18, 0, 1], scale: [16, 1, 2], rotation: [0,0,0]},
+                    { translation: [-18, 0, 1], scale: [16, 1, 2], rotation: [0, 0, 0] },
                     // Right side vertical obstacle
-                    {translation: [28, -4, 1], scale: [1, 17, 2], rotation: [0,0,0]},
+                    { translation: [28, -4, 1], scale: [1, 17, 2], rotation: [0, 0, 0] },
                     // Top left horizontal obstacle
-                    {translation: [-18, 30, 1], scale: [16, 1, 2], rotation: [0,0,0]},
+                    { translation: [-18, 30, 1], scale: [16, 1, 2], rotation: [0, 0, 0] },
                     // Top right horizontal obstacle
-                    {translation: [12, -20, 1], scale: [15, 1, 2], rotation: [0,0,0]},
+                    { translation: [12, -20, 1], scale: [15, 1, 2], rotation: [0, 0, 0] },
                     // Inner left vertical obstacle
-                    {translation: [-3, 20, 1], scale: [1, 9, 2], rotation: [0,0,0]},
+                    { translation: [-3, 20, 1], scale: [1, 9, 2], rotation: [0, 0, 0] },
                     // Inner right vertical obstacle
-                    {translation: [-3, -10, 1], scale: [1, 11, 2], rotation: [0,0,0]},
+                    { translation: [-3, -10, 1], scale: [1, 11, 2], rotation: [0, 0, 0] },
                     // Inner middle horizontal obstacle
-                    {translation: [12, 12, 1], scale: [15, 1, 2], rotation: [0,0,0]},
+                    { translation: [12, 12, 1], scale: [15, 1, 2], rotation: [0, 0, 0] },
                     // Left obstacle sticking out
-                    {translation: [7, 2, 1], scale: [1, 10, 2], rotation: [0,0,0]},
+                    { translation: [7, 2, 1], scale: [1, 10, 2], rotation: [0, 0, 0] },
                     // Right obstacle sticking out
-                    {translation: [17, -10, 1], scale: [1, 10, 2], rotation: [0,0,0]},
+                    { translation: [17, -10, 1], scale: [1, 10, 2], rotation: [0, 0, 0] },
                     // Diagonal
-                    {translation: [-18, 15, 1], scale: [4, 4, 2], rotation: [0,0,0]},
-                ],                
+                    { translation: [-18, 15, 1], scale: [4, 4, 2], rotation: [0, 0, 0] },
+                ],
                 hole_position: vec3(-28, 25, 1),
-                ball_start_position: vec3(23, -15, 1),              
-                
+                ball_start_position: vec3(23, -15, 1),
+
             },
             { // Level 3
                 obstacles : [
                     {
-                        minX: -36, maxX: -34,
-                        minY: -20, maxY: 40,
-                        minZ: -1, maxZ: 3,
+                        minX: -36, maxX: -34, minY: -20, maxY: 40, minZ: -1, maxZ: 3,
                         normal: vec3(1, 0, 0)  // Points outwards, right direction
                     },
                     {
-                        minX: 22, maxX: 24,
-                        minY: -20, maxY: 40,
-                        minZ: -1, maxZ: 3,
+                        minX: 22, maxX: 24, minY: -20, maxY: 40, minZ: -1, maxZ: 3,
                         normal: vec3(-1, 0, 0) // Points outwards, left direction
                     },
                     {
-                        minX: -36, maxX: 24,
-                        minY: 39, maxY: 41,
-                        minZ: -1, maxZ: 3,
+                        minX: -36, maxX: 24, minY: 39, maxY: 41, minZ: -1, maxZ: 3,
                         normal: vec3(0, -1, 0) // Points downwards
                     },
                     {
-                        minX: -36, maxX: 24,
-                        minY: -21, maxY: -19,
-                        minZ: -1, maxZ: 3,
+                        minX: -36, maxX: 24, minY: -21, maxY: -19, minZ: -1, maxZ: 3,
                         normal: vec3(0, 1, 0)  // Points upwards
                     },
                     {
-                        minX: -35, maxX: -15,
-                        minY: -1, maxY: 1,
-                        minZ: -1, maxZ: 3,
+                        minX: -35, maxX: -15, minY: -1, maxY: 1, minZ: -1, maxZ: 3,
                         normal: vec3(0, 1, 0)  // Points upwards
                     },
                     {
-                        minX: -16, maxX: -14,
-                        minY: -21, maxY: 1,
-                        minZ: -1, maxZ: 3,
+                        minX: -16, maxX: -14, minY: -21, maxY: 1, minZ: -1, maxZ: 3,
                         normal: vec3(1, 0, 0)  // Points outwards, right direction
                     },
                     {
-                        minX: 2, maxX: 4,
-                        minY: -21, maxY: 1,
-                        minZ: -1, maxZ: 3,
+                        minX: 2, maxX: 4, minY: -21, maxY: 1, minZ: -1, maxZ: 3,
                         normal: vec3(-1, 0, 0) // Points outwards, left direction
                     },
                     {
-                        minX: 2, maxX: 22,
-                        minY: -1, maxY: 1,
-                        minZ: -1, maxZ: 3,
+                        minX: 2, maxX: 22, minY: -1, maxY: 1, minZ: -1, maxZ: 3,
                         normal: vec3(0, 1, 0)  // Points upwards
                     },
                     {
@@ -243,21 +208,15 @@ export class Main extends Scene {
                         normal: vec3(-1, 0, 0) // Points outwards, left direction
                     },
                     {
-                        minX: 2, maxX: 22,
-                        minY: 17, maxY: 19,
-                        minZ: -1, maxZ: 3,
+                        minX: 2, maxX: 22, minY: 17, maxY: 19, minZ: -1, maxZ: 3,
                         normal: vec3(0, -1, 0) // Points downwards
                     },
                     {
-                        minX: -16, maxX: -14,
-                        minY: 17, maxY: 39,
-                        minZ: -1, maxZ: 3,
+                        minX: -16, maxX: -14, minY: 17, maxY: 39, minZ: -1, maxZ: 3,
                         normal: vec3(1, 0, 0)  // Points outwards, right direction
                     },
                     {
-                        minX: -35, maxX: -15,
-                        minY: 17, maxY: 19,
-                        minZ: -1, maxZ: 3,
+                        minX: -35, maxX: -15, minY: 17, maxY: 19, minZ: -1, m axZ: 3,
                         normal: vec3(0, -1, 0) // Points downwards
                     }
                 ],
@@ -295,44 +254,44 @@ export class Main extends Scene {
                                                                
                 obstacle_positions: [
                     // Left side vertical obstacle
-                    {translation: [-35, 10, 1], scale: [1, 30, 2], rotation: [0,0,0]},
+                    { translation: [-35, 10, 1], scale: [1, 30, 2], rotation: [0, 0, 0] },
                     // Right side vertical obstacle
-                    {translation: [23, 10, 1], scale: [1, 30, 2], rotation: [0,0,0]},
+                    { translation: [23, 10, 1], scale: [1, 30, 2], rotation: [0, 0, 0] },
                     // Top left horizontal obstacle
-                    {translation: [-6, 40, 1], scale: [30, 1, 2], rotation: [0,0,0]},
+                    { translation: [-6, 40, 1], scale: [30, 1, 2], rotation: [0, 0, 0] },
                     // Top right horizontal obstacle
-                    {translation: [-6, -20, 1], scale: [30, 1, 2], rotation: [0,0,0]},
+                    { translation: [-6, -20, 1], scale: [30, 1, 2], rotation: [0, 0, 0] },
 
                     // top of bottom left square
-                    {translation: [-25, 0, 1], scale: [10, 1, 2], rotation: [0,0,0]},
+                    { translation: [-25, 0, 1], scale: [10, 1, 2], rotation: [0, 0, 0] },
                     // side of bottom left square
-                    {translation: [-15, -10, 1], scale: [1, 11, 2], rotation: [0,0,0]},
+                    { translation: [-15, -10, 1], scale: [1, 11, 2], rotation: [0, 0, 0] },
 
                     // side of bottom right square
-                    {translation: [3, -10, 1], scale: [1, 11, 2], rotation: [0,0,0]},
+                    { translation: [3, -10, 1], scale: [1, 11, 2], rotation: [0, 0, 0] },
                     // top of bottom right square
-                    {translation: [12, 0, 1], scale: [10, 1, 2], rotation: [0,0,0]},
-                    
-                    // side of top right square
-                    {translation: [3, 28, 1], scale: [1, 11, 2], rotation: [0,0,0]},
-                    // bottom of top right square
-                    {translation: [12, 18, 1], scale: [10, 1, 2], rotation: [0,0,0]},
+                    { translation: [12, 0, 1], scale: [10, 1, 2], rotation: [0, 0, 0] },
 
                     // side of top right square
-                    {translation: [-15, 28, 1], scale: [1, 11, 2], rotation: [0,0,0]},
+                    { translation: [3, 28, 1], scale: [1, 11, 2], rotation: [0, 0, 0] },
                     // bottom of top right square
-                    {translation: [-25, 18, 1], scale: [10, 1, 2], rotation: [0,0,0]},
-                ],        
+                    { translation: [12, 18, 1], scale: [10, 1, 2], rotation: [0, 0, 0] },
+
+                    // side of top right square
+                    { translation: [-15, 28, 1], scale: [1, 11, 2], rotation: [0, 0, 0] },
+                    // bottom of top right square
+                    { translation: [-25, 18, 1], scale: [10, 1, 2], rotation: [0, 0, 0] },
+                ],
                 red_obstacle_positions: [ // Positions for the red "dangerous" obstacles
-                    {translation: [9, -8, 1], scale: [5, .5, 1], rotation: [0,0,0]},
-                    {translation: [17, -12, 1], scale: [5, .5, 1], rotation: [0,0,0]}, //bottom right
+                    { translation: [9, -8, 1], scale: [5, .5, 1], rotation: [0, 0, 0] },
+                    { translation: [17, -12, 1], scale: [5, .5, 1], rotation: [0, 0, 0] }, //bottom right
 
-                    {translation: [17, 28, 1], scale: [6, .5, 1], rotation: [0,0,0]}, //top right
+                    { translation: [17, 28, 1], scale: [6, .5, 1], rotation: [0, 0, 0] }, //top right
 
-                    {translation: [-28, 28, 1], scale: [6, .5, 1], rotation: [0,0,0]},
-                ],        
+                    { translation: [-28, 28, 1], scale: [6, .5, 1], rotation: [0, 0, 0] },
+                ],
                 hole_position: vec3(40, 30, 1),
-                ball_start_position: vec3(-6, 10, 1),       
+                ball_start_position: vec3(-6, 10, 1),
             },
         ];
         this.current_level = 0;
@@ -340,18 +299,18 @@ export class Main extends Scene {
 
         // *** Materials
         this.materials = {
-            ball: new Material(new defs.Phong_Shader(), {ambient: 0.4, diffusivity: 1, specularity: 0.5, color: hex_color("#ffffff")}),
-            green_terrain: new Material(new defs.Phong_Shader(), {ambient: 1, diffusivity: 1, specularity: 0, color: hex_color("#8CC084")}),
-            obstacle: new Material(new defs.Phong_Shader(), {ambient: 0.5, diffusivity: 1, specularity: 0, color: hex_color("#8B4513")}),
-            hole: new Material(new defs.Phong_Shader(), {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#000000")}),
-            arrow: new Material(new defs.Phong_Shader(), {ambient: 1, diffusivity: 0, specularity: 0, color: hex_color("#ff0000")}),
+            ball: new Material(new defs.Phong_Shader(), { ambient: 0.4, diffusivity: 1, specularity: 0.5, color: hex_color("#ffffff") }),
+            green_terrain: new Material(new defs.Phong_Shader(), { ambient: 1, diffusivity: 1, specularity: 0, color: hex_color("#8CC084") }),
+            obstacle: new Material(new defs.Phong_Shader(), { ambient: 0.5, diffusivity: 1, specularity: 0, color: hex_color("#8B4513") }),
+            hole: new Material(new defs.Phong_Shader(), { ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#000000") }),
+            arrow: new Material(new defs.Phong_Shader(), { ambient: 1, diffusivity: 0, specularity: 0, color: hex_color("#ff0000") }),
             line: new Material(new defs.Basic_Shader()),
-            red_obstacle: new Material(new defs.Phong_Shader(), {ambient: 0.5, diffusivity: 1, specularity: 0, color: hex_color("#FF0000")}),
-            coin: new Material(new defs.Phong_Shader(), {ambient: 0.4, diffusivity: 1, specularity: 0.5, color: hex_color("#FFD700")})
+            red_obstacle: new Material(new defs.Phong_Shader(), { ambient: 0.5, diffusivity: 1, specularity: 0, color: hex_color("#FF0000") }),
+            coin: new Material(new defs.Phong_Shader(), { ambient: 1, diffusivity: 0.7, specularity: 1, color: hex_color("#FFD700") })
         };
 
-        this.initial_camera_location = Mat4.look_at(vec3(0, -40, 50), vec3(0, 0, 0), vec3(0, 0, 1)); 
-        
+        this.initial_camera_location = Mat4.look_at(vec3(0, -40, 50), vec3(0, 0, 0), vec3(0, 0, 1));
+
         this.ball_position = vec3(-10, 20, 1);  // Assuming these are the initial coordinates of the ball
         this.ball_velocity = vec3(0, 0, 0);     // Initialize with zero velocity
         this.aim_direction = vec3(1, 0, 0); // Initial aim direction
@@ -365,7 +324,7 @@ export class Main extends Scene {
         // this.current_speed = this.base_speed;
         this.isEnterPressed = false;
         this.maxSpeed = 50;
-        this.potentialVelocity = 0; 
+        this.potentialVelocity = 0;
         this.fluctuationAmplitude = 25; // Maximum deviation from the base speed
         this.fluctuationFrequency = 2;  // Frequency of the fluctuation
         this.strokes = 0;
@@ -380,15 +339,15 @@ export class Main extends Scene {
         this.tp_materials = [];
 
         const fixedPositions = [
-            {x: -6, y: 30}, {x: -30, y: -15}, //yellow
-            {x: -20, y: -4}, {x: 18, y: 35}, //blue
-            {x: 7, y: 25}, {x: -30, y: 35}, //green
-            {x: -20, y: 25}, {x: 8, y: -4}, //purple
-            {x: 18, y: -15}, {x: 40, y: 10} //pink
+            { x: -6, y: 30 }, { x: -30, y: -15 }, //yellow
+            { x: -20, y: -4 }, { x: 18, y: 35 }, //blue
+            { x: 7, y: 25 }, { x: -30, y: 35 }, //green
+            { x: -20, y: 25 }, { x: 8, y: -4 }, //purple
+            { x: 18, y: -15 }, { x: 40, y: 10 } //pink
         ];
 
         const colors = [
-            hex_color("#FAFF70"), hex_color("#4FA3F8"), hex_color("#3DA739"), 
+            hex_color("#FAFF70"), hex_color("#4FA3F8"), hex_color("#3DA739"),
             hex_color("#B896C5"), hex_color("#FFCAD4")
         ];
 
@@ -414,7 +373,7 @@ export class Main extends Scene {
         ];
         this.collected_coins = 0;
 
-        this.key_state = {ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false, Enter: false};
+        this.key_state = { ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false, Enter: false };
         this.add_key_listener()
 
         this.canvas = document.querySelector('#main-canvas');
@@ -485,35 +444,35 @@ export class Main extends Scene {
             box.textContent = "Coins Collected: " + this.collected_coins;
         });
         this.new_line();
-            // This button simulates pressing and releasing the up arrow key
-            this.key_triggered_button("Move Up", ["ArrowUp"], () => this.key_state.ArrowUp = true, undefined, () => this.key_state.ArrowUp = false);
-        
-            // This button simulates pressing and releasing the left arrow key
-            this.key_triggered_button("Move Left", ["ArrowLeft"], () => this.key_state.ArrowLeft = true, undefined, () => this.key_state.ArrowLeft = false);
-        
-            // This button simulates pressing and releasing the down arrow key
-            this.key_triggered_button("Move Down", ["ArrowDown"], () => this.key_state.ArrowDown = true, undefined, () => this.key_state.ArrowDown = false);
-        
-            // This button simulates pressing and releasing the right arrow key
-            this.key_triggered_button("Move Right", ["ArrowRight"], () => this.key_state.ArrowRight = true, undefined, () => this.key_state.ArrowRight = false);
-        
-            // This button simulates pressing and releasing the enter key to shoot 
-            this.key_triggered_button("Shoot", ["Enter"], () => {
-                if (!this.isEnterPressed) {
-                    this.isEnterPressed = true;
-                    this.enter_press_time = Date.now();
-                }
-            }, undefined, () => {
-                if (this.isEnterPressed) {
-                    this.isEnterPressed = false;
-                    this.ball_velocity = this.aim_direction.times(this.potentialVelocity);
-                    this.potentialVelocity = 0;  // Reset after shooting
-                    this.strokes += 1;  // Increment the stroke count when the ball is shot
-                    this.enter_release_time = Date.now();
-                }
-            });
-        }
-    
+        // This button simulates pressing and releasing the up arrow key
+        this.key_triggered_button("Move Up", ["ArrowUp"], () => this.key_state.ArrowUp = true, undefined, () => this.key_state.ArrowUp = false);
+
+        // This button simulates pressing and releasing the left arrow key
+        this.key_triggered_button("Move Left", ["ArrowLeft"], () => this.key_state.ArrowLeft = true, undefined, () => this.key_state.ArrowLeft = false);
+
+        // This button simulates pressing and releasing the down arrow key
+        this.key_triggered_button("Move Down", ["ArrowDown"], () => this.key_state.ArrowDown = true, undefined, () => this.key_state.ArrowDown = false);
+
+        // This button simulates pressing and releasing the right arrow key
+        this.key_triggered_button("Move Right", ["ArrowRight"], () => this.key_state.ArrowRight = true, undefined, () => this.key_state.ArrowRight = false);
+
+        // This button simulates pressing and releasing the enter key to shoot 
+        this.key_triggered_button("Shoot", ["Enter"], () => {
+            if (!this.isEnterPressed) {
+                this.isEnterPressed = true;
+                this.enter_press_time = Date.now();
+            }
+        }, undefined, () => {
+            if (this.isEnterPressed) {
+                this.isEnterPressed = false;
+                this.ball_velocity = this.aim_direction.times(this.potentialVelocity);
+                this.potentialVelocity = 0;  // Reset after shooting
+                this.strokes += 1;  // Increment the stroke count when the ball is shot
+                this.enter_release_time = Date.now();
+            }
+        });
+    }
+
     update_aim_direction(dt) {
         let change = false;
         if (this.key_state.ArrowUp) {
@@ -546,7 +505,7 @@ export class Main extends Scene {
         this.ball_position = level.ball_start_position;
         this.ball_velocity = vec3(0, 0, 0);
         this.strokes = 0;
-    
+
         // Initialize coins for the current level
         if (level_index === 1) {
             // Hard code coin positions for level 2
@@ -567,10 +526,10 @@ export class Main extends Scene {
                 vec3(0, 15, 1)
             ];
         }
-    
+
         this.collected_coins = 0;
         console.log("Initialized level with coins:", this.coins);
-    }    
+    }
 
     generate_coins(num_coins) {
         const coins = [];
@@ -597,7 +556,7 @@ export class Main extends Scene {
         if (this.isEnterPressed && this.enter_press_time) {
             const currentTime = Date.now();
             const pressDuration = (currentTime - this.enter_press_time) / 1000;
-    
+
             // Calculating fluctuating velocity based on a sine wave
             this.potentialVelocity = this.speed + this.fluctuationAmplitude * Math.sin(this.fluctuationFrequency * Math.PI * pressDuration);
             this.potentialVelocity = Math.abs(this.potentialVelocity); // Ensure non-negative velocity for display and physics
@@ -612,13 +571,13 @@ export class Main extends Scene {
             this.ball_velocity = this.aim_direction.times(this.speed);
         }
     }
-    
-    attach_event_listeners() { 
+
+    attach_event_listeners() {
         this.canvas.addEventListener('mouseup', () => {
             this.dragging = false;
         });
     }
-    
+
     ndcToWorld(ndcX, ndcY, program_state) {
         const ndcPos = vec4(ndcX, ndcY, 1, 1);
         const inverseProj = Mat4.inverse(program_state.projection_transform);
@@ -628,7 +587,7 @@ export class Main extends Scene {
     }
 
     isCollidingWithDangerous() {
-        const sphere = {c: this.ball_position, r: this.ball_radius};
+        const sphere = { c: this.ball_position, r: this.ball_radius };
         for (let obstacle of this.levels[this.current_level].red_obstacles) {
             const aabb = {
                 minX: obstacle.minX,
@@ -662,7 +621,7 @@ export class Main extends Scene {
                 maxZ: obstacle.maxZ,
                 normal: obstacle.normal
             };
-    
+
             // Use the testSphereAABB method to check collision
             if (this.testSphereAABB(sphere, aabb)) {
                 console.log("Collision detected with obstacle");
@@ -724,13 +683,13 @@ export class Main extends Scene {
         if (this.ball_velocity.norm() > 0) {  // Check if the velocity vector is non-zero
             const friction = 0.98;
             this.ball_velocity = this.ball_velocity.times(friction);
-    
+
             // Update position
             this.ball_position = this.ball_position.plus(this.ball_velocity.times(dt));
-            
+
             // Log current velocity for debugging
             // console.log("Current velocity:", this.ball_velocity);
-    
+
             // Stop the ball if velocity is very low
             if (this.ball_velocity.norm() < 0.1) {
                 this.ball_velocity = vec3(0, 0, 0);
@@ -788,7 +747,7 @@ export class Main extends Scene {
             }
         }
     }
-    
+
 
     display(context, program_state) {
         // display():  Called once per frame of animation.
@@ -799,9 +758,9 @@ export class Main extends Scene {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             program_state.set_camera(this.initial_camera_location);
         }
-    
+
         program_state.projection_transform = Mat4.perspective(Math.PI / 4, context.width / context.height, 0.1, 100);
-    
+
         const light_position = vec4(0, 10, 0, 1);
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
 
@@ -812,7 +771,7 @@ export class Main extends Scene {
         this.update_aim_direction(dt);
         this.release_ball();
         this.updatePhysics(dt);
-        
+
         // Position the ball
         const ball_transform = Mat4.identity().times(Mat4.translation(...this.ball_position));
         this.shapes.ball.draw(context, program_state, ball_transform, this.materials.ball);
@@ -821,7 +780,7 @@ export class Main extends Scene {
 
         // Always draw aim line when ball is stationary
         if (this.ball_velocity.norm() === 0 && !this.isEnterPressed) {
-            const lineLength =10;  // Normalize by maxSpeed for appropriate scaling
+            const lineLength = 10;  // Normalize by maxSpeed for appropriate scaling
             const arrow_transform = Mat4.identity()
                 .times(Mat4.translation(...this.ball_position.plus(this.aim_direction.times(lineLength / 2))))
                 .times(Mat4.rotation(Math.atan2(this.aim_direction[1], this.aim_direction[0]), 0, 0, 1))
@@ -830,7 +789,7 @@ export class Main extends Scene {
         }
 
         if (this.isEnterPressed) {
-            const lineLength =  this.potentialVelocity / this.maxSpeed * 10;
+            const lineLength = this.potentialVelocity / this.maxSpeed * 10;
             const arrow_transform = Mat4.identity()
                 .times(Mat4.translation(...this.ball_position.plus(this.aim_direction.times(lineLength / 2))))
                 .times(Mat4.rotation(Math.atan2(this.aim_direction[1], this.aim_direction[0]), 0, 0, 1))
@@ -844,18 +803,18 @@ export class Main extends Scene {
 
         // Draw the U-shaped terrain
         const left_plane_transform = Mat4.identity().times(Mat4.translation(-0, 0, 0)).times(Mat4.scale(80, 80, 1));
-    
+
         this.shapes.plane.draw(context, program_state, left_plane_transform, this.materials.green_terrain);
 
         // const left_plane_transform = Mat4.identity().times(Mat4.translation(-10, 0, 0)).times(Mat4.scale(5, 25, 1));
         // const bottom_plane_transform = Mat4.identity().times(Mat4.translation(0, -20, 0)).times(Mat4.scale(15, 5, 1));
         // const right_plane_transform = Mat4.identity().times(Mat4.translation(10, 0, 0)).times(Mat4.scale(5, 25, 1));
-    
+
         // this.shapes.plane.draw(context, program_state, left_plane_transform, this.materials.green_terrain);
         // this.shapes.plane.draw(context, program_state, bottom_plane_transform, this.materials.green_terrain);
         // this.shapes.plane.draw(context, program_state, right_plane_transform, this.materials.green_terrain);
 
-        for (let {translation, scale, rotation} of this.obstacle_positions) {
+        for (let { translation, scale, rotation } of this.obstacle_positions) {
             let rotationAngle = rotation[1] * Math.PI / 180; // Convert degrees to radians if rotation is specified in degrees
             let obstacle_transform = Mat4.identity()
                 .times(Mat4.translation(...translation))
@@ -864,17 +823,46 @@ export class Main extends Scene {
             this.shapes.obstacle.draw(context, program_state, obstacle_transform, this.materials.obstacle);
         }
 
+        const coin_spin_speed = Math.PI / 2;
         this.coins.forEach(coin => {
-            const coin_transform = Mat4.identity().times(Mat4.translation(...coin)).times(Mat4.scale(this.coin_radius, this.coin_radius, this.coin_radius));
-            console.log("Drawing coin at:", coin); // Debugging output
-            this.shapes.coin.draw(context, program_state, coin_transform, this.materials.coin);
+            const coin_thickness = 0.14; // Adjust thickness
+        
+            const coin_body_transform = Mat4.identity()
+                .times(Mat4.translation(...coin))
+                .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)) // Rotate 90 degrees around the x-axis to stand the coin up
+                .times(Mat4.rotation(t * coin_spin_speed, 0, 0, 1)) // Spin around the z-axis
+                .times(Mat4.scale(this.coin_radius, this.coin_radius, coin_thickness)); // Scale z-axis to make it thicker
+        
+            const coin_top_face_transform = Mat4.identity()
+                .times(Mat4.translation(...coin))
+                .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)) // Rotate 90 degrees around the x-axis
+                .times(Mat4.rotation(t * coin_spin_speed, 0, 0, 1)) // Spin around the z-axis
+                .times(Mat4.translation(0, 0, coin_thickness)); // Position the top face slightly above
+        
+            const coin_bottom_face_transform = Mat4.identity()
+                .times(Mat4.translation(...coin))
+                .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)) // Rotate 90 degrees around the x-axis
+                .times(Mat4.rotation(t * coin_spin_speed, 0, 0, 1)) // Spin around the z-axis
+                .times(Mat4.translation(0, 0, -coin_thickness)); // Position the bottom face slightly below
+        
+            // Draw the body of the coin
+            this.shapes.coin_body.draw(context, program_state, coin_body_transform, this.materials.coin);
+        
+            // Draw the top face of the coin
+            this.shapes.coin_face.draw(context, program_state, coin_top_face_transform, this.materials.coin);
+        
+            // Draw the bottom face of the coin
+            this.shapes.coin_face.draw(context, program_state, coin_bottom_face_transform, this.materials.coin);
         });
+        
+
+
 
         if (this.current_level == 2) {
             for (let i = 0; i < this.tp_transforms.length; i++) {
                 this.shapes.hole.draw(context, program_state, this.tp_transforms[i], this.tp_materials[i]);
             }
-            for (let {translation, scale, rotation} of this.red_obstacle_positions) {
+            for (let { translation, scale, rotation } of this.red_obstacle_positions) {
                 let rotationAngle = rotation[1] * Math.PI / 180; // Convert degrees to radians
                 let obstacle_transform = Mat4.identity()
                     .times(Mat4.translation(...translation))
@@ -987,7 +975,7 @@ class Gouraud_Shader extends Shader {
     }
 
     update_GPU(context, gpu_addresses, gpu_state, model_transform, material) {
-        const defaults = {color: color(0, 0, 0, 1), ambient: 0, diffusivity: 1, specularity: 1, smoothness: 40};
+        const defaults = { color: color(0, 0, 0, 1), ambient: 0, diffusivity: 1, specularity: 1, smoothness: 40 };
         material = Object.assign({}, defaults, material);
 
         this.send_material(context, gpu_addresses, material);
