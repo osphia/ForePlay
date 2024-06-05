@@ -216,7 +216,7 @@ export class Main extends Scene {
                         normal: vec3(1, 0, 0)  // Points outwards, right direction
                     },
                     {
-                        minX: -35, maxX: -15, minY: 17, maxY: 19, minZ: -1, m axZ: 3,
+                        minX: -35, maxX: -15, minY: 17, maxY: 19, minZ: -1, maxZ: 3,
                         normal: vec3(0, -1, 0) // Points downwards
                     }
                 ],
