@@ -11,6 +11,17 @@
 <body style="background: White">
 <!-- Begin typing your web page here. -->
 <!-- The following code embeds a WebGL canvas panel, loads certain scene(s), and displays panel(s) of their controls.-->
+<div id="winScreen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(255, 192, 203, 0.9); color: white; text-align:center; z-index:1000;">
+    <div style="position:relative; top:50%; transform:translateY(-50%); font-family: 'Arial', sans-serif;">
+        <h1 style="font-size: 2em; color: #FFFFFF;">Congratulations, You Won!</h1>
+        <p id="winMessage" style="font-size: 1.5em;">You have completed all levels!</p>
+        <button id="rs" style="font-size: 1em; padding: 10px 20px; border-radius: 20px; background-color: #FF69B4; color: white; border: none; cursor: pointer; transition: background-color 0.3s, transform 0.3s;">
+            Restart Game
+        </button>
+    </div>
+</div>
+
+
 <div class="canvas-widget" id="main-canvas"></div>
 <script type=module>
     // ********************* THE ENTRY POINT OF YOUR WHOLE PROGRAM STARTS HERE *********************

@@ -131,7 +131,7 @@ export class Main extends Scene {
             arrow: new Material(new defs.Phong_Shader(), { ambient: 1, diffusivity: 0, specularity: 0, color: hex_color("#ff0000") }),
             line: new Material(new defs.Basic_Shader()),
             red_obstacle: new Material(new defs.Phong_Shader(), { ambient: 0.8, diffusivity: 1, specularity: 0, color: hex_color("#FF0000") }),
-            coin: new Material(new defs.Phong_Shader(), { ambient: .95, diffusivity: 0.7, specularity: 1, color: hex_color("#FFD700") })
+            coin: new Material(new defs.Phong_Shader(), { ambient: 0.95, diffusivity: 0.8, specularity: 0.5, color: hex_color("#FFD700") })
         };
 
         this.camera_mode = 'third_person';
@@ -247,6 +247,7 @@ export class Main extends Scene {
                 event.preventDefault();
             }
         });
+        
     }
 
     make_control_panel() {
@@ -315,7 +316,15 @@ export class Main extends Scene {
         this.ball_velocity = vec3(0, 0, 0);
         this.strokes = 0;
 
-        if (level_index === 1) {
+        // Initialize coins for the current level
+        if (level_index === 0) {
+            this.coins = [
+                vec3(-10, -12, 1),
+                vec3(11, -4, 1),
+                vec3(2, -21, 1)
+            ];
+        }
+        else if (level_index === 1) {
             this.coins = [
                 vec3(-20, 7, 1),
                 vec3(10, -5, 1),
@@ -374,9 +383,16 @@ export class Main extends Scene {
         }
     }
 
+
     attach_event_listeners() {
         this.canvas.addEventListener('mouseup', () => {
             this.dragging = false;
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            const restartButton = document.getElementById('rs'); // Make sure your button has an id
+            if (restartButton) {
+                restartButton.addEventListener('click', () => this.restartGame());
+            }
         });
     }
 
@@ -525,13 +541,30 @@ export class Main extends Scene {
             if (this.current_level < this.levels.length) {
                 this.init_level(this.current_level);
             } else {
-                alert("You have completed all levels!");
-                this.current_level = 0;
-                this.init_level(this.current_level);
+                this.game_completed = true;
+                this.display_win_screen();
+                // alert("You have completed all levels!");
+                // this.current_level = 0;  // Reset to the first level or end game
+                // this.init_level(this.current_level);  // Restart at the first level or display end game screen
             }
         }
     }
 
+    display_win_screen() {
+        console.log('win screen called')
+        const winScreen = document.getElementById('winScreen');
+        const winMessage = document.getElementById('winMessage');
+        winMessage.textContent = `Congratulations! You have completed all levels with ${this.strokes} strokes and collected ${this.collected_coins} coins!`;
+        winScreen.style.display = 'block'; // Show the win screen
+    }
+
+    restartGame() {
+        this.game_completed = false;
+        this.current_level = 0;
+        this.init_level(this.current_level);
+        document.getElementById('winScreen').style.display = 'none'; // Hide the win screen
+        // Reset other necessary states of your game
+    }
     display(context, program_state) {
         this.current_program_state = program_state;
 
