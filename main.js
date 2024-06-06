@@ -16,8 +16,7 @@ export class Main extends Scene {
             arrow: new defs.Cube(),
             arrowhead: new defs.Cone_Tip(3, 10),
             fullscreen_quad: new defs.Square(),
-            coin_body: new defs.Cylindrical_Tube(1, 1, [[0, 2], [0, 2]]),
-            coin_face: new defs.Regular_2D_Polygon(1, 15)
+            coin: new defs.Capped_Cylinder(1, 15, [[0, 2], [0, 2]]) // Use the new shape here
         };
 
         this.levels = [
@@ -157,6 +156,7 @@ export class Main extends Scene {
         this.collected_coins = 0;
         this.tp_transforms = [];
         this.tp_materials = [];
+        this.coin_rotation = 0;
         const fixedPositions = [
             { x: -6, y: 30 }, { x: -30, y: -15 },
             { x: -20, y: -4 }, { x: 18, y: 35 },
@@ -429,6 +429,9 @@ export class Main extends Scene {
             this.ball_velocity = reflection;
         }
 
+        this.coin_rotation += 2 * Math.PI / 6 * dt; // Rotate 60 degrees per second
+        this.coin_rotation %= 2 * Math.PI; // Keep the angle within a 0-2π range
+
         if (this.current_level == 2) {
             const dangerousObstacle = this.isCollidingWithDangerous();
             if (dangerousObstacle) {
@@ -576,22 +579,12 @@ export class Main extends Scene {
         }
 
         this.coins.forEach(coin => {
-            const coin_thickness = 0.14;
-            const coin_body_transform = Mat4.identity()
+            const coin_transform = Mat4.identity()
                 .times(Mat4.translation(...coin))
-                .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
-                .times(Mat4.scale(this.coin_radius, this.coin_radius, coin_thickness));
-            const coin_top_face_transform = Mat4.identity()
-                .times(Mat4.translation(...coin))
-                .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
-                .times(Mat4.translation(0, 0, coin_thickness));
-            const coin_bottom_face_transform = Mat4.identity()
-                .times(Mat4.translation(...coin))
-                .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
-                .times(Mat4.translation(0, 0, -coin_thickness));
-            this.shapes.coin_body.draw(context, program_state, coin_body_transform, this.materials.coin);
-            this.shapes.coin_face.draw(context, program_state, coin_top_face_transform, this.materials.coin);
-            this.shapes.coin_face.draw(context, program_state, coin_bottom_face_transform, this.materials.coin);
+                .times(Mat4.rotation(Math.PI / 2, 1, 0, 0)) // Orient the coin to lie flat
+                .times(Mat4.rotation(this.coin_rotation, 0, 1, 0)) // Apply rotation around the z-axis
+                .times(Mat4.scale(this.coin_radius, this.coin_radius, 0.1)); // Scale to the appropriate coin size
+            this.shapes.coin.draw(context, program_state, coin_transform, this.materials.coin);
         });
 
         if (this.current_level == 2) {
