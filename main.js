@@ -138,13 +138,13 @@ export class Main extends Scene {
         this.ball_position = vec3(-10, 20, 1);
         this.ball_velocity = vec3(0, 0, 0);
         this.aim_direction = vec3(1, 0, 0);
-        this.speed = 25;
+        this.speed = 35;
         this.aim_speed = 0.05;
         this.friction = 0.98;
         this.enter_press_time = null;
         this.enter_release_time = null;
         this.isEnterPressed = false;
-        this.maxSpeed = 50;
+        this.maxSpeed = 55;
         this.potentialVelocity = 0;
         this.fluctuationAmplitude = 25;
         this.fluctuationFrequency = 2;
@@ -485,7 +485,7 @@ export class Main extends Scene {
 
     check_for_victory() {
         const distance_to_hert = this.ball_position.minus(this.hole_position).norm();
-        if (distance_to_hert < this.ball_radius + this.hole_radius) {
+        if (distance_to_hert < this.ball_radius + this.hole_radius - 0.8) {
             alert(`Congratulations! You've won level ${this.current_level + 1} in ${this.strokes} strokes! Coins collected: ${this.collected_coins}`);
             this.current_level++;
             if (this.current_level < this.levels.length) {
