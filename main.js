@@ -42,7 +42,7 @@ export class Main extends Scene {
                     { translation: [5, 5, 1], scale: [1, 20, 2], rotation: [0, 0, 0] },
                     { translation: [0, -14, 1], scale: [5, 1, 2], rotation: [0, 0, 0] }
                 ],
-                hole_position: vec3(10, 20, 1),
+                hole_position: vec3(10, 20, 0),
                 ball_start_position: vec3(-10, 20, 1)
             },
             {
@@ -72,7 +72,7 @@ export class Main extends Scene {
                     { translation: [17, -10, 1], scale: [1, 10, 2], rotation: [0, 0, 0] },
                     { translation: [-18, 15, 1], scale: [4, 4, 2], rotation: [0, 0, 0] }
                 ],
-                hole_position: vec3(-28, 25, 1),
+                hole_position: vec3(-28, 25, 0),
                 ball_start_position: vec3(23, -15, 1)
             },
             {
@@ -116,7 +116,7 @@ export class Main extends Scene {
                     { translation: [17, 28, 1], scale: [6, .5, 1], rotation: [0, 0, 0] },
                     { translation: [-28, 28, 1], scale: [6, .5, 1], rotation: [0, 0, 0] }
                 ],
-                hole_position: vec3(40, 30, 1),
+                hole_position: vec3(40, 30, 0),
                 ball_start_position: vec3(-6, 10, 1)
             }
         ];
@@ -259,10 +259,11 @@ export class Main extends Scene {
             box.textContent = "Coins Collected: " + this.collected_coins;
         });
         this.new_line();
-        this.key_triggered_button("Move Up", ["ArrowUp"], () => this.key_state.ArrowUp = true, undefined, () => this.key_state.ArrowUp = false);
-        this.key_triggered_button("Move Left", ["ArrowLeft"], () => this.key_state.ArrowLeft = true, undefined, () => this.key_state.ArrowLeft = false);
-        this.key_triggered_button("Move Down", ["ArrowDown"], () => this.key_state.ArrowDown = true, undefined, () => this.key_state.ArrowDown = false);
-        this.key_triggered_button("Move Right", ["ArrowRight"], () => this.key_state.ArrowRight = true, undefined, () => this.key_state.ArrowRight = false);
+        this.key_triggered_button("Aim Up", ["ArrowUp"], () => this.key_state.ArrowUp = true, undefined, () => this.key_state.ArrowUp = false);
+        this.new_line();
+        this.key_triggered_button("Aim Left", ["ArrowLeft"], () => this.key_state.ArrowLeft = true, undefined, () => this.key_state.ArrowLeft = false);
+        this.key_triggered_button("Aim Down", ["ArrowDown"], () => this.key_state.ArrowDown = true, undefined, () => this.key_state.ArrowDown = false);
+        this.key_triggered_button("Aim Right", ["ArrowRight"], () => this.key_state.ArrowRight = true, undefined, () => this.key_state.ArrowRight = false);
         this.key_triggered_button("Shoot", ["Enter"], () => {
             if (!this.isEnterPressed && this.isBallStationary()) {
                 this.isEnterPressed = true;
@@ -276,6 +277,10 @@ export class Main extends Scene {
                 this.strokes += 1;
                 this.enter_release_time = Date.now();
             }
+        });
+        this.new_line();
+        this.key_triggered_button("Change View", ["Shift"], () => {
+            this.camera_mode = (this.camera_mode === 'third_person') ? 'first_person' : 'third_person';
         });
     }
 
@@ -636,23 +641,19 @@ export class Main extends Scene {
             this.shapes.obstacle.draw(context, program_state, obstacle_transform, this.materials.obstacle);
         }
 
-        const coin_spin_speed = Math.PI / 2;
         this.coins.forEach(coin => {
             const coin_thickness = 0.14;
             const coin_body_transform = Mat4.identity()
                 .times(Mat4.translation(...coin))
                 .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
-                .times(Mat4.rotation(t * coin_spin_speed, 0, 0, 1))
                 .times(Mat4.scale(this.coin_radius, this.coin_radius, coin_thickness));
             const coin_top_face_transform = Mat4.identity()
                 .times(Mat4.translation(...coin))
                 .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
-                .times(Mat4.rotation(t * coin_spin_speed, 0, 0, 1))
                 .times(Mat4.translation(0, 0, coin_thickness));
             const coin_bottom_face_transform = Mat4.identity()
                 .times(Mat4.translation(...coin))
                 .times(Mat4.rotation(Math.PI / 2, 1, 0, 0))
-                .times(Mat4.rotation(t * coin_spin_speed, 0, 0, 1))
                 .times(Mat4.translation(0, 0, -coin_thickness));
             this.shapes.coin_body.draw(context, program_state, coin_body_transform, this.materials.coin);
             this.shapes.coin_face.draw(context, program_state, coin_top_face_transform, this.materials.coin);
