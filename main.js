@@ -190,6 +190,9 @@ export class Main extends Scene {
         this.key_state = { ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false, Enter: false };
         this.canvas = document.querySelector('#main-canvas');
         this.attach_event_listeners();
+
+        this.coinSound = new Audio('sounds/coinsound.mp3');
+        this.victorySound = new Audio('sounds/victorysound.mp3');
     }
 
     make_control_panel() {
@@ -477,6 +480,7 @@ export class Main extends Scene {
             const distance = this.ball_position.minus(coin).norm();
             if (distance < this.ball_radius + this.coin_radius) {
                 this.collected_coins += 1;
+                this.coinSound.play();
                 return false;
             }
             return true;
@@ -503,6 +507,7 @@ export class Main extends Scene {
         const winMessage = document.getElementById('winMessage');
         winMessage.textContent = `Congratulations! You have completed all levels with ${this.strokes} strokes and collected ${this.collected_coins} coins!`;
         winScreen.style.display = 'block'; // Show the win screen
+        this.victorySound.play();
     }
 
     restartGame() {
