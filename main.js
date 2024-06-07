@@ -8,6 +8,40 @@ export class Main extends Scene {
     constructor() {
         super();
 
+        this.backgroundMusic = new Audio('./Music.mp3');
+        this.backgroundMusic.loop = true; // Loop the music
+        this.backgroundMusic.volume = .3; // Set the volume level
+
+        this.musicPlaying = false; // Music initially off
+        this.musicStarted = false; // To ensure music starts only once
+
+        // Attempt to play the music on user interaction
+        const playMusic = () => {
+            if (!this.musicStarted) {
+                this.backgroundMusic.play().then(() => {
+                    this.musicPlaying = true;
+                    this.musicStarted = true;
+                }).catch(error => {
+                    console.error('Error playing music:', error);
+                });
+            }
+        };
+
+        // Start the music initially
+        this.backgroundMusic.play().catch(error => {
+            console.error('Error playing music:', error);
+        });
+
+        document.addEventListener('click', playMusic, { once: true });
+        document.addEventListener('keydown', playMusic, { once: true });
+
+        // Toggle music on "m" key press
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'm' || event.key === 'M') {
+                this.toggleMusic();
+            }
+        });
+
         this.shapes = {
             ball: new defs.Subdivision_Sphere(4),
             plane: new defs.Square(),
